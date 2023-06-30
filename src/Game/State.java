@@ -4,6 +4,15 @@ public class State {
 	private boolean redWon,
 		draw, ended;
 	
+
+	public State copy() {
+		State newInstance = new State();
+		newInstance.draw = draw;
+		newInstance.redWon = redWon;
+		newInstance.ended = ended;
+
+		return newInstance;
+	}
 	
 	public boolean gameDidEnd() {
 		return this.ended;

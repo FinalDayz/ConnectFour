@@ -2,7 +2,7 @@ package test;
 
 import Game.ConnectFour;
 
-public class ConnectFourTest {
+public class ConnectFourTest extends Test {
 	public ConnectFourTest() {
 		
 	}
@@ -146,19 +146,19 @@ public class ConnectFourTest {
 	
 	public void equals(boolean x, boolean y) {
 		if(x != y) {
-			throw new IllegalArgumentException("x not equals y");
+			throw new IllegalArgumentException("x not equals y, x:"+x+", y:"+y);
 		}
 	}
 	
 	public void equals(double x, double y) {
 		if(x != y) {
-			throw new IllegalArgumentException("x not equals y");
+			throw new IllegalArgumentException("x not equals y, x:"+x+", y:"+y);
 		}
 	}
 	
 	public void equals(int x, int y) {
 		if(x != y) {
-			throw new IllegalArgumentException("x not equals y");
+			throw new IllegalArgumentException("x not equals y, x:"+x+", y:"+y);
 		}
 	}
 }

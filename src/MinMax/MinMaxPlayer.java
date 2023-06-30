@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 import Game.ConnectFour;
+import Game.ConnectFourPlayable;
 import Game.ConnectFourPlayer;
 
 public class MinMaxPlayer extends MinMax implements ConnectFourPlayer {
@@ -33,7 +34,7 @@ public class MinMaxPlayer extends MinMax implements ConnectFourPlayer {
 	}
 	
 	@Override
-	public void init(ConnectFour game, boolean redPlayer) {
+	public void init(ConnectFourPlayable game, boolean redPlayer) {
 		this.game = game;
 	}
 
@@ -59,7 +60,7 @@ public class MinMaxPlayer extends MinMax implements ConnectFourPlayer {
 		}
 		
 		System.out.println("Ai moves:");
-		System.out.println(Arrays.toString(scores.toArray()));
+		System.out.println("\t"+Arrays.toString(scores.toArray()));
 		Node chosenNode;
 		
 		if(randomColumnOnEqualChance)
@@ -80,18 +81,10 @@ public class MinMaxPlayer extends MinMax implements ConnectFourPlayer {
 		this.clearNodes();
 		
 		
-		
-		  Thread thread = new Thread(){
-			    public void run(){
-			    	game.makePlay(lastMove);
-			    }
-			  };
-
-			  thread.start();
-		
-		
-		
-		
+		game.makePlay(lastMove);
 	}
 
+	@Override
+	public void update() {
+	}
 }

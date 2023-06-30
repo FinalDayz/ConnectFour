@@ -47,6 +47,7 @@ public class Node implements Comparable<Node> {
 		if(deadEnd)
 			return score;
 		game.executePlay(move);
+		int depthScoreValue = 2 + (100 / thisDepth);
 		
 		if(max) {
 			score = Integer.MIN_VALUE;
@@ -55,7 +56,7 @@ public class Node implements Comparable<Node> {
 		}
 
 		if(thisDepth >= toDepth || game.gameState.gameDidEnd()) {
-			score = evaluate();
+			score = evaluate(depthScoreValue);
 //			if(thisDepth < 3)
 //				println(debug+ " Move " + move +": " + score  + ", " + ( max ? "max" : "min"));
 			
@@ -65,12 +66,12 @@ public class Node implements Comparable<Node> {
 		
 		if(table.contains(game.getRedBitBoard(), game.getYellowBitBoard())) {
 			MinMaxResult savesResult = table.getValue(game.getRedBitBoard(), game.getYellowBitBoard());
-			if(savesResult.depth == this.thisDepth &&
-					savesResult.maxDepth == toDepth) {
+			// if(savesResult.depth == this.thisDepth &&
+			// 		savesResult.maxDepth == toDepth) {
 				this.score = savesResult.score;
 				game.undoMove(false);
 				return score;
-			}
+			// }
 		}
 		
 		
@@ -92,11 +93,11 @@ public class Node implements Comparable<Node> {
 				nodeScore = node.score;
 			}
 			
-			int bestResult = max ? 2 : -2;
+			int bestResult = max ? depthScoreValue : -depthScoreValue;
 			//this means that it has lost or won
 			if(nodeScore == bestResult) {
 				score = nodeScore;
-				saveResult(toDepth);
+				// saveResult(toDepth);
 				game.undoMove(false);
 				
 				deadEnd = true;
@@ -107,7 +108,7 @@ public class Node implements Comparable<Node> {
 				score = Math.max(score, nodeScore);
 				alpha = Math.max(alpha, score);
 				if(alpha > beta) {
-					saveResult(toDepth);
+					saveResult(toDepth, thisDepth);
 					game.undoMove(false);
 					return score;
 				}
@@ -115,20 +116,22 @@ public class Node implements Comparable<Node> {
 				score = Math.min(score, nodeScore);
 				beta = Math.min(beta, score);
 				if(alpha > beta) {
-					saveResult(toDepth);
+					saveResult(toDepth, thisDepth);
 					game.undoMove(false);
 					return score;
 				}
 			}
 		}
 //		println(debug + " << score: " + score+" ("+Arrays.toString(scores)+")");
-		saveResult(toDepth);
+		saveResult(toDepth, thisDepth);
 		game.undoMove(false);
 
 		return score;
 	}
 	
-	private void saveResult(int toDepth) {
+	private void saveResult(int toDepth, int thisDepth) {
+		// if(thisDepth >= 11) return;
+
 		if(table.contains(game.getRedBitBoard(), game.getYellowBitBoard())) {
 			MinMaxResult result = table.getValue(game.getRedBitBoard(), game.getYellowBitBoard());
 			if(result.score != this.score && result.maxDepth == toDepth) {
@@ -176,7 +179,7 @@ public class Node implements Comparable<Node> {
 	}
 	
 	
-	public int evaluate() {
+	public int evaluate(int depthScoreValue) {
 		if(game.gameState.gameDidEnd()) {
 			
 			if(game.gameState.gameDidDraw()) {
@@ -185,10 +188,10 @@ public class Node implements Comparable<Node> {
 			
 			if(game.gameState.redDidWon() == isRed) {
 				//won
-				return 2;
+				return depthScoreValue;
 			} else {
 				//lost
-				return -2;
+				return -depthScoreValue;
 			}
 		}
 		

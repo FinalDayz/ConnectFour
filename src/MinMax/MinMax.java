@@ -20,7 +20,6 @@ public class MinMax {
 	}
 	
 	protected void clearNodes() {
-		System.out.println("Clear: "+game.moveHistory);
 		for(Node node : topNodes) {
 			node.clear();
 		}
@@ -42,35 +41,34 @@ public class MinMax {
 			
 		//for each depth, search every node
 		boolean foundSolution = false;
-		for(int searchDepth = 1; searchDepth <= depth; searchDepth++) {
+		// depth = 10;
+		for(int searchDepth = 0; searchDepth <= depth; searchDepth+=1) {
+			table.clear();
+		// 	int searchDepth = depth;
 			NODE_COUNTER = 0;
 			println("search " + searchDepth);
 			for(Node node : this.topNodes) {
 				//FALSE WANT MAX GELD VOOR VOLGENDE LAAG
-				if(node.getScore() == 2 || node.getScore() == -2) {
+				if(node.getScore() >= 2 || node.getScore() <= -2) {
 					continue;
 				}
 				
 				int value = node.search(searchDepth);
-				if(value == 2) {
+				if(value >= 2) {
 					foundSolution = true;
+				}
+
+				if(System.currentTimeMillis() > timeToEnd) {
+					println("SKIPPP OUTTA TIME2 " + (System.currentTimeMillis()- timeToEnd)+" over time");
+					break;
 				}
 			}
 			
 			if(foundSolution || System.currentTimeMillis() > timeToEnd) {
-				println("SKIPPP OUTTA TIME2 " + System.currentTimeMillis() +" > "+ timeToEnd);
+				println("SKIPPP OUTTA TIME2 " + (System.currentTimeMillis()-timeToEnd)+" over time");
 				break;
 			}
-
-		}
-		
-		println("NODES: " + NODE_COUNTER);
-	
-		
-	}
-	
-	private void getTopNodes() {
-		
+		}	
 	}
 	
 	private void createTopNodes(Long timeToEnd) {

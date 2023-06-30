@@ -12,6 +12,7 @@ public class CustomHashMap<KeyType, ValueType> {
 	HashMap<KeyType, ValueType> thisMap;
 	HashMap<KeyType, CustomHashMap<KeyType, ValueType>> childsHash;
 	private int NumberOfIndexes;
+	public int valuesSet = 0;
 	
 	public CustomHashMap(int NumberOfIndexes) {
 		
@@ -35,7 +36,7 @@ public class CustomHashMap<KeyType, ValueType> {
 			throw new IllegalArgumentException();
 		}
 		
-		
+		valuesSet++;
 		if(NumberOfIndexes == 1) {
 			this.thisMap.put(keys.get(0), value);
 			
@@ -110,6 +111,14 @@ public class CustomHashMap<KeyType, ValueType> {
 			
 			
 			return childHashMap.contains(keys);
+		}
+	}
+
+	public void clear() {
+		if(NumberOfIndexes == 1) {
+			thisMap = new HashMap<KeyType, ValueType>();
+		} else {
+			childsHash = new HashMap<KeyType, CustomHashMap<KeyType, ValueType>>();
 		}
 	}
 	
