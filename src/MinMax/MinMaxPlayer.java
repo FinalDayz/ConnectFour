@@ -87,4 +87,9 @@ public class MinMaxPlayer extends MinMax implements ConnectFourPlayer {
 	@Override
 	public void update() {
 	}
+
+	@Override
+	public void setLog(boolean log) {
+
+	}
 }

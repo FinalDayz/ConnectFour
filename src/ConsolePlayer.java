@@ -45,4 +45,9 @@ public class ConsolePlayer implements ConnectFourPlayer {
 	@Override
 	public void update() {
 	}
+
+	@Override
+	public void setLog(boolean log) {
+
+	}
 }

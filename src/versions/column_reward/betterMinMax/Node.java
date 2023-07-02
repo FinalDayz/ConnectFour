@@ -1,7 +1,8 @@
-package betterMinMax;
+package versions.column_reward.betterMinMax;
+
+import Game.ConnectFour;
 
 import java.util.Arrays;
-import Game.ConnectFour;
 
 public abstract class Node implements Comparable<Node> {
     

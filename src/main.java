@@ -7,8 +7,10 @@ import MinMax.MinMaxPlayer;
 import Util.CustomHashMap;
 import Util.Log;
 import betterMinMax.BetterMinMaxPlayer;
+import betterMinMax.SmartEvaluationFunction;
 import test.ConnectFourTest;
 import test.DoubleHashMapTest;
+import ui.BitBoardViewer;
 import ui.ConnectFourViewer;
 import ui.ViewerConfig;
 
@@ -22,8 +24,18 @@ public class main {
 		ConnectFourTest test = new ConnectFourTest();
 		test.executeTests();
 		(new DoubleHashMapTest()).executeTests();
-		
-		
+
+		Evaluator evaluator = new Evaluator(500);
+		evaluator.evaluate(
+//				new BetterMinMaxPlayer(20, 100),
+				new BetterMinMaxPlayer(27, 100),
+//				new versions.column_reward.betterMinMax.BetterMinMaxPlayer(27, 100)
+//				new versions.base.betterMinMax.BetterMinMaxPlayer(7, 1000)
+				new versions.base.betterMinMax.BetterMinMaxPlayer(20, 100)
+		);
+//
+		System.exit(0);
+
 		// MinMaxPlayer minMaxPlayer2 = new MinMaxPlayer(25,  8000);
 		BetterMinMaxPlayer minMaxPlayer = new BetterMinMaxPlayer(99, 3000);
 		minMaxPlayer.useCache = false;
@@ -33,19 +45,27 @@ public class main {
 		GraphicsPlayer human = new GraphicsPlayer();
 		
 		//human is yellow, starts 2nd, bot starts
-		ConnectFourPlayable game = new ConnectFourPlayable(minMaxPlayer, human);//game.executeSet(3);
+//		ConnectFourPlayable game = new ConnectFourPlayable(minMaxPlayer, human);//game.executeSet(3);
 		//human is Red, starts first, bot is 2nd
-		// ConnectFourPlayable game = new ConnectFourPlayable(human, minMaxPlayer);
+		 ConnectFourPlayable game = new ConnectFourPlayable(human, human);
+
+//		ConnectFour testGame = new ConnectFour();
+//		testGame.executeSet(3,4,3,4,3,4);
+//		SmartEvaluationFunction.testPatterns(testGame);
+
+
+
+//		ConnectFourPlayable game = new ConnectFourPlayable(human, human);
 
 		// Bot vs Bot
 		// ConnectFourPlayable game = new ConnectFourPlayable(minMaxPlayer2, minMaxPlayer);
 
-		// ConnectFourViewer viewer = new ConnectFourViewer(game, new ViewerConfig());
-		// game.setMinTimePerMove(2000);
-		// viewer.viewGame(game);
+//		 ConnectFourViewer viewer = new ConnectFourViewer(new ViewerConfig());
+//		 game.setMinTimePerMove(2000);
+//		 viewer.viewGame(game);
 
 		//5276313436535
-		// game.executeSet(0,2,0,0,5,1,3,5,2,5,0,0,2,5);
+
 		//easy 1
 		// game.executeSet(3, 6, 5, 6, 5, 5, 3, 1);
 		
@@ -69,9 +89,9 @@ public class main {
 		// ConnectFour.checkDiagonal2Win(game.getRedBitBoard());
 
 		// game.setBeginPlayer(minMaxPlayer);
-		
+
 		game.printBoard();
-		
+
 		game.begin();
 
 

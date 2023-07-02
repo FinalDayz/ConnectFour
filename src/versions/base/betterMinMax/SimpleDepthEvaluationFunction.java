@@ -1,4 +1,4 @@
-package betterMinMax;
+package versions.base.betterMinMax;
 
 import Game.ConnectFour;
 

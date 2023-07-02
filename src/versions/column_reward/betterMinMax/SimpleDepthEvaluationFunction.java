@@ -1,4 +1,4 @@
-package betterMinMax;
+package versions.column_reward.betterMinMax;
 
 import Game.ConnectFour;
 

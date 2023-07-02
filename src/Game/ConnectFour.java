@@ -18,18 +18,24 @@ public class ConnectFour {
 	protected long bitBoardRed;
 	protected long bitBoardYellow;
 	public boolean redTurn = true;
-	
-	private static final long COLUMN_BITS = 0b0000000100000010000001000000100000010000001l;
-	private static final long ROW_BITS =   0b1111111l;
+
+	public static final long COLUMN_BITS = 0b0000000100000010000001000000100000010000001l;
+	public static final long ROW_BITS =   0b1111111l;
 	public static final long FULL_BOARD = 0b111111111111111111111111111111111111111111l;
 	
 	public State gameState;
 	
 	public ArrayList<Integer> moveHistory = new ArrayList<Integer>();
 	protected int[] availableMoves;
-	
+
 	public ConnectFour() {
 		this(WIDTH, HEIGHT, true);
+	}
+
+	public ConnectFour(long bitBoardRed, long bitBoardYellow) {
+		this(WIDTH, HEIGHT, true);
+		this.bitBoardRed = bitBoardRed;
+		this.bitBoardYellow = bitBoardYellow;
 	}
 
 	public ConnectFour copy() {
@@ -76,18 +82,19 @@ public class ConnectFour {
 	public int getHeight() {
 		return this.height;
 	}
-	
+
 	public void executePlay(int columnIndex) {
+		long start = System.currentTimeMillis();
+
 		if(columnIndex < 0 || columnIndex >= width) {
 			throw new IllegalArgumentException("column is out of range, " + columnIndex+" < 0 or >= " + width);
 		}
-		long column = 1 << columnIndex;
+		long column = 1L << columnIndex;
 				
 		long affectedBitBoard = redTurn ? this.bitBoardRed : this.bitBoardYellow;
 		long totalBitBoard = this.bitBoardRed | this.bitBoardYellow;
 		
-		
-		long columnBits = this.COLUMN_BITS << columnIndex;
+		long columnBits = COLUMN_BITS << columnIndex;
 		long occupiedPlaces = (totalBitBoard & columnBits);
 		long totalBitBoardColumn = totalBitBoard & occupiedPlaces;
 		if((totalBitBoard & columnBits) == columnBits) {
@@ -95,8 +102,7 @@ public class ConnectFour {
 		}
 		
 		moveHistory.add(columnIndex);
-		
-		
+
 		//this means the row is empty
 		if(occupiedPlaces == 0) {
 			affectedBitBoard += column << width * (height - 1);
@@ -104,13 +110,13 @@ public class ConnectFour {
 			long cell = (totalBitBoardColumn ^ columnBits) & (totalBitBoardColumn >> width);
 			affectedBitBoard += cell;
 		}
-		
+
 		if(redTurn) {
 			this.bitBoardRed = affectedBitBoard;
 		} else {
 			this.bitBoardYellow = affectedBitBoard;
 		}
-		
+
 		this.availableMoves = this.calcAvailableMoves();
 		checkState();
 		
@@ -118,7 +124,6 @@ public class ConnectFour {
 		if(!this.gameState.gameDidEnd()) {
 			this.redTurn = !redTurn;
 		}
-
 	}
 	
 	protected int[] calcAvailableMoves() {
@@ -139,7 +144,7 @@ public class ConnectFour {
 	private void checkState() {
 		boolean redWon = checkWin(this.bitBoardRed);
 		boolean yellowWon = checkWin(this.bitBoardYellow);
-		
+
 		if(redWon) {
 			this.gameState.setRedWon();
 		} else if(yellowWon) {
@@ -147,7 +152,6 @@ public class ConnectFour {
 		} else if(this.availableMoves.length == 0) {
 			this.gameState.setDraw();
 		}
-		
 	}
 	
 	public int undoMove(boolean checkWin) {
@@ -355,4 +359,9 @@ public class ConnectFour {
 	public void print(Object o) {if(log)System.out.print(o);}
 
 
+	public void executeSet(int...columns) {
+		for(int column : columns) {
+			this.executePlay(column);
+		}
+	}
 }

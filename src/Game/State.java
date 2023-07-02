@@ -19,18 +19,17 @@ public class State {
 	}
 	
 	public boolean redDidWon() {
-		return this.ended && this.redWon;
+		return this.ended && !this.draw && this.redWon;
 	}
 	
 	public boolean yellowDidWon() {
-		return this.ended && !this.redWon;
+		return this.ended && !this.draw && !this.redWon;
 	}
 	
 	public boolean gameDidDraw() {
 		return this.ended && this.draw;
 	}
-	
-	
+
 	public void setYellowWon() {
 		this.redWon = false;
 		this.ended = true;
@@ -45,8 +44,7 @@ public class State {
 		this.draw = true;
 		this.ended = true;
 	}
-	
-	
+
 	public void reset() {
 		this.redWon = false;
 		this.ended = false;

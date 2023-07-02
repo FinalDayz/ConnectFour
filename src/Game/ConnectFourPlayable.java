@@ -14,6 +14,7 @@ public class ConnectFourPlayable extends ConnectFour {
 	private int minTimePerMove = 0;
 	private long lastTurn = 0;
 	ConnectFourPlayer beginPlayer;
+	public boolean log = true;
 	
 	public ConnectFourPlayable(ConnectFourPlayer redPlayer, ConnectFourPlayer yellowPlayer) {
 		super();
@@ -33,7 +34,17 @@ public class ConnectFourPlayable extends ConnectFour {
 			this.redTurn = false;
 		}
 	}
-	
+
+	public int getPlayerMoves(ConnectFourPlayer player) {
+		if(redPlayer != player && yellowPlayer != player) {
+			throw new RuntimeException("Provided player is not red or yellow player");
+		}
+		if(this.beginPlayer == player) {
+			return (int) Math.ceil(moveHistory.size()/2.0);
+		}
+		return (int) Math.floor(moveHistory.size()/2.0);
+	}
+
 	@Override
 	public void makePlay(int columnIndex) {
 		this.executePlay(columnIndex);
@@ -69,20 +80,23 @@ public class ConnectFourPlayable extends ConnectFour {
 		giveTurn();
 	}
 	
-	private void giveTurn() {
+	protected void giveTurn() {
 		lastTurn = System.currentTimeMillis();
-		System.out.println("MOVES PLAYED: "+moveHistory);
-		SmartEvaluationFunction.testPatterns(this);
+		if(log)
+			System.out.println("MOVES PLAYED: "+moveHistory);
+
 		if(this.gameState.gameDidEnd()) {
-			printBoard();
-			System.out.println("Game ended!");
-			if(gameState.yellowDidWon())
-				System.out.println("Yellow won!");
-			if(gameState.redDidWon())
-				System.out.println("Red won!");
-			if(gameState.gameDidDraw())
-				System.out.println("Draw!");
-			
+			if(log)
+				printBoard();
+			if(log) {
+				System.out.println("Game ended!");
+				if (gameState.yellowDidWon())
+					System.out.println("Yellow won!");
+				if (gameState.redDidWon())
+					System.out.println("Red won!");
+				if (gameState.gameDidDraw())
+					System.out.println("Draw!");
+			}
 			return;
 		}
 		try {
@@ -97,6 +111,10 @@ public class ConnectFourPlayable extends ConnectFour {
 
 		this.redPlayer.update();
 		this.yellowPlayer.update();
+		updateWatchers();
+	}
+
+	protected void updateWatchers() {
 		for(GameWatcher watcher : watchers) {
 			watcher.update(this);
 		}
@@ -109,6 +127,7 @@ public class ConnectFourPlayable extends ConnectFour {
 		this.redPlayer.update();
 		this.yellowPlayer.update();
 	}
+
 	public void attachWatcher(GameWatcher watcher) {
 		this.watchers.add(watcher);
 	}

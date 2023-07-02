@@ -8,4 +8,6 @@ public interface ConnectFourPlayer {
 
 	public void update();
 
+	public void setLog(boolean log);
+
 }

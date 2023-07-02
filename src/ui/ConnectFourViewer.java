@@ -39,20 +39,20 @@ public class ConnectFourViewer implements GameWatcher {
 	JPanel drawPanel;
 	JFrame windowFrame;
 	
-	private final int TILE_SIZE = 75;//75;
+	protected int TILE_SIZE = 75;//75;
 
 	private Point mousePosition = new Point(0,0);
-	private Point startBoardDrawPosition = new Point(50, 50);
+	protected Point startBoardDrawPosition = new Point(50, 50);
 	private boolean canMakePlay = false;
-	private ConnectFour gameToSimulate;
+	protected ConnectFour gameToSimulate;
     private boolean isRedPlayer;
     private ViewerConfig config;
     private Stack<Integer> undoneMoves = new Stack();
 
-
-	public ConnectFourViewer(ConnectFour game, ViewerConfig config) {
-		this.gameToSimulate = game.copy();
+	public ConnectFourViewer(ViewerConfig config) {
 		this.config = config;
+
+		initialize();
 	}
 
 	public void initialize() {
@@ -106,7 +106,7 @@ public class ConnectFourViewer implements GameWatcher {
 		
 	}
 
-    void pressedKey(KeyEvent e) {
+    protected void pressedKey(KeyEvent e) {
         if(!config.canControlGame()) {
             return;
         }
@@ -185,7 +185,7 @@ public class ConnectFourViewer implements GameWatcher {
 		this.mousePosition = e.getPoint();
 	}
 
-	private Point getMousePositionOnBoard() {
+	protected Point getMousePositionOnBoard() {
 		int rightSide = game.getWidth() * TILE_SIZE;
 		int bottomSide = game.getHeight() * TILE_SIZE;
 
@@ -219,14 +219,6 @@ public class ConnectFourViewer implements GameWatcher {
 		int rightSide = (widthTiles) * TILE_SIZE;
 		int bottomSide = (heightTiles) * TILE_SIZE;
 
-		// Draw the board lines
-		g.setColor(Color.WHITE);
-		for(int x = 0; x < widthTiles+1; x++) {
-			g.drawLine(x * TILE_SIZE, 0, x * TILE_SIZE, bottomSide);
-		}
-		for(int y = 0; y < heightTiles+1; y++) {
-			g.drawLine(0, y * TILE_SIZE, rightSide, y * TILE_SIZE);
-		}
 
 		if(gameToSimulate != null && canMakePlay && mousePositionOnBoard != null) {
 			int hoverMoveIndex = mousePositionOnBoard.x;
@@ -247,6 +239,38 @@ public class ConnectFourViewer implements GameWatcher {
 			}
 		}
 
+		drawGame(g, game, 0, 0);
+
+		if(game.gameState.gameDidEnd()) {
+			g.setColor(Color.MAGENTA);
+			String endStr = getGameStateStr(game.gameState, isRedPlayer);
+			
+			g.setFont(new Font("Arial", Font.BOLD, 70));
+			g.drawString(endStr, rightSide/2-200, bottomSide/2-10);
+		}
+
+		drawDebugNodes(g);
+	}
+
+	protected void drawGame(Graphics2D g, ConnectFour game, int startX, int startY) {
+		g.translate(startX, startY);
+
+		int widthTiles = game.getWidth();
+		int heightTiles = game.getHeight();
+
+		int rightSide = (widthTiles) * TILE_SIZE;
+		int bottomSide = (heightTiles) * TILE_SIZE;
+
+		// Draw the board lines
+		g.setColor(Color.WHITE);
+		for(int x = 0; x < widthTiles+1; x++) {
+			g.drawLine(x * TILE_SIZE, 0, x * TILE_SIZE, bottomSide);
+		}
+		for(int y = 0; y < heightTiles+1; y++) {
+			g.drawLine(0, y * TILE_SIZE, rightSide, y * TILE_SIZE);
+		}
+
+		g.setColor(Color.WHITE);
 		for(int x = 0; x < widthTiles; x++) {
 			for(int y = 0; y < heightTiles; y++) {
 				int positionX = x * TILE_SIZE;
@@ -262,21 +286,11 @@ public class ConnectFourViewer implements GameWatcher {
 					g.fillOval(positionX, positionY, TILE_SIZE, TILE_SIZE);
 				}
 			}
-			
 		}
-
-		if(this.game.gameState.gameDidEnd()) {
-			g.setColor(Color.MAGENTA);
-			String endStr = getGameStateStr(game.gameState, isRedPlayer);
-			
-			g.setFont(new Font("Arial", Font.BOLD, 70));
-			g.drawString(endStr, rightSide/2-200, bottomSide/2-10);
-		}
-
-		drawDebugNodes(g);
+		g.translate(-startX, -startY);
 	}
 
-	private void drawDebugNodes(Graphics2D g) {
+	protected void drawDebugNodes(Graphics2D g) {
 		g.setFont(new Font("Arial", Font.CENTER_BASELINE, 10));
 		((Graphics2D) g).setStroke(new BasicStroke(0.1f));
 
@@ -335,7 +349,6 @@ public class ConnectFourViewer implements GameWatcher {
 
 		this.gameToSimulate = game.copy();
 		game.attachWatcher(this);
-		initialize();
 	}
 
 	@Override
@@ -351,4 +364,7 @@ public class ConnectFourViewer implements GameWatcher {
         canMakePlay = true;
     }
 
+	public void close() {
+		windowFrame.dispose();
+	}
 }
