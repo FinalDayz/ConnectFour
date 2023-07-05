@@ -1,15 +1,11 @@
-package betterMinMax;
+package versions.v5.negamax.betterMinMax;
 
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Scanner;
-import java.util.Stack;
-
+import Game.BotPlayer;
 import Game.ConnectFour;
 import Game.ConnectFourPlayable;
-import Game.BotPlayer;
 import versions.v4.row_modifiers.betterMinMax.CacheEntry;
+
+import java.util.*;
 
 public class BetterMinMaxPlayer implements BotPlayer {
 

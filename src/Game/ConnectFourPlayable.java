@@ -135,4 +135,13 @@ public class ConnectFourPlayable extends ConnectFour {
     public void setMinTimePerMove(int timeInMs) {
 		this.minTimePerMove = timeInMs;
     }
+
+	public boolean playerDidWon(ConnectFourPlayer player) {
+		if(player == redPlayer) {
+			return gameState.redDidWon();
+		} else if(player == yellowPlayer) {
+			return gameState.yellowDidWon();
+		}
+		throw new IllegalArgumentException("Player is not red or yellow player");
+	}
 }

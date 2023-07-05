@@ -29,22 +29,22 @@ public class Evaluator {
 65 draws
 
 
-========================================================================
- V  | new algo          || vs base              || vs prev ver.
-====|===================|===================|============================
- V1 | base              | 50%                   |  -                    |
- V2 | Column reward     | 63%                   |  -                    |
- V3 | Row Patterns      |                       | 62%  w:578 l:357 d:65 |
-    |                   |                       |                       |
-    |                   |                       |                       |
-    |                   |                       |                       |
+==========================================================================
+ V  | new algo           || vs base              || vs prev ver.
+====|====================|========================|=============================
+ V1 | base               | 49%  w:452 l:470 d:78  |  -                     |
+ V2 | Column reward      | 54%  w:496 l:426 d:78  |  -                     |
+ V3 | Row Patterns       | 63%  w:593 l:339 d:68  | 53.5% w:496 l:427 d:77 |
+ V4 | Row modifiers      | 61%  w:578 l:358 d:64  | 60%  w:566 l:365 d:69  |
+    |                    |                        |                        |
+    |                    |                        |                        |
 
 V1: base, MinMax+alpha beta. Also, three in row + two in row reward.
 V2: Give reward for having more pieces of you in the center
 V3: Give reward for making three in a row in their row (red/yellow)
 
      */
-    public void evaluate(BotPlayer player1, BotPlayer player2) {
+    public void evaluate(int[] depths, long timeToTake, BotPlayer player1, BotPlayer player2) {
         player1.setLog(false);
         player2.setLog(false);
         player1.setCanMakeRandomMove(false);
@@ -54,62 +54,88 @@ V3: Give reward for making three in a row in their row (red/yellow)
 
         System.out.println(p1Name + " vs " + p2Name);
         System.out.println("=== FIGHT! ===");
-        int p1Wins = 0;
-        int p2Wins = 0;
-        int draws = 0;
 
-        int p1Moves = 0, p2Moves = 0;
-        long p1MoveTime = 0, p2MoveTime = 0;
+        EvaluateResult totalResult = new EvaluateResult();
 
-//        ConnectFourViewer viewer = new ConnectFourViewer(new ViewerConfig());
-        int len = Math.min(games, randGames.length);
-        for (int i = 0; i < len; i++) {
-            System.out.println("Starting round " + (i + 1) + "/" + (len - 1));
-            int[] gameBeginning = randGames[i];
-            EvaluationConnectFour game = new EvaluationConnectFour(player1, player2);
-            game.executeSet(gameBeginning);
+        player1.setMaxTimeToTake(timeToTake);
+        player2.setMaxTimeToTake(timeToTake);
 
-//            viewer.viewGame(game);
-            game.begin();
+        for(int depth : depths) {
+            int logEvery = 2000;
+            player1.setMaxDepth(depth);
+            player2.setMaxDepth(depth);
 
-            if (game.gameState.gameDidDraw()) draws++;
-            if (game.gameState.redDidWon()) p1Wins++;
-            if (game.gameState.yellowDidWon()) p2Wins++;
+            System.out.println("Starting for depth: " + depth);
+            EvaluateResult result = evaluatePlayers(player1, player2, logEvery);
+            totalResult.addFrom(result);
+            System.out.println("=========================");
+            System.out.println("Completed depth " + depth);
+            System.out.println("Total for now:");
 
-            p1Moves += game.getPlayerMoves(player1);
-            p1MoveTime += player1.getTotalMoveTimeTaken();
-            p2Moves += game.getPlayerMoves(player2);
-            p2MoveTime += player2.getTotalMoveTimeTaken();
 
-//            System.out.println("game.moveHistory "+game.moveHistory);
-//            System.out.println("p1: " + p1Wins+", p2: "+p2Wins+" draw: " + draws);
+            System.out.println(
+                    "p1: " + totalResult.p1Wins + ", p2: " + totalResult.p2Wins + " draw: " + totalResult.draws +
+                            " p1Win%: " + totalResult.calcWinPercentage() + "%"
 
-            game = new EvaluationConnectFour(player2, player1);
-            game.executeSet(gameBeginning);
-
-//            viewer.viewGame(game);
-            game.begin();
-
-            if (game.gameState.gameDidDraw()) draws++;
-            if (game.gameState.redDidWon()) p2Wins++;
-            if (game.gameState.yellowDidWon()) p1Wins++;
-
-            p1Moves += game.getPlayerMoves(player1);
-            p1MoveTime += player1.getTotalMoveTimeTaken();
-            p2Moves += game.getPlayerMoves(player2);
-            p2MoveTime += player2.getTotalMoveTimeTaken();
-
-            System.out.println("game.moveHistory " + game.moveHistory);
-            System.out.println("p1: " + p1Wins + ", p2: " + p2Wins + " draw: " + draws + " p1Win%: " + Math.round(p1Wins * 100 / (p1Wins + p2Wins)) + "%");
-
-//            System.out.println("avg p1 ms per move: " + (p1MoveTime*1.0 / p1Moves));
-//            System.out.println("avg p2 ms per move: " + (p2MoveTime*1.0 / p2Moves));
+            );
+            System.out.println("\n");
         }
 
-        System.out.println("===== RESULTS =====");
-        System.out.println(p1Wins + " Wins for " + p1Name);
-        System.out.println(p2Wins + " Wins for " + p2Name);
-        System.out.println(draws + " draws");
+        System.out.println("\n\n==================== RESULTS =======================");
+        System.out.println(totalResult.p1Wins + " Wins for " + p1Name);
+        System.out.println(totalResult.p2Wins + " Wins for " + p2Name);
+        System.out.println(totalResult.draws + " draws");
+        System.out.println("PERCENTAGR FOR Player 1: " + totalResult.calcWinPercentage() + "%");
+        System.out.println("avg Player 1 move time: " + totalResult.p1AvgMoveTime());
+        System.out.println("avg Player 2 move time: " + totalResult.p2AvgMoveTime());
+    }
+
+    private EvaluateResult evaluatePlayers(BotPlayer player1, BotPlayer player2, int logEveryMs) {
+        EvaluateResult result = new EvaluateResult();
+
+        int len = Math.min(games, randGames.length);
+        long lastLog = 0;
+        for (int i = 0; i < len; i++) {
+            boolean log = lastLog+logEveryMs <= System.currentTimeMillis();
+//            log = true;
+            if (log) {
+                lastLog = System.currentTimeMillis();
+                System.out.print("round " + (i + 1) + "/" + (len - 1) + "] ");
+            }
+
+            int[] gameBeginning = randGames[i];
+
+            for (boolean p1IsRed : new boolean[]{true, false}) {
+                EvaluationConnectFour game = new EvaluationConnectFour(
+                        p1IsRed ? player1 : player2,
+                        p1IsRed ? player2 : player1
+                );
+                game.executeSet(gameBeginning);
+                game.begin();
+
+                result.draws += game.gameState.gameDidDraw() ? 1 : 0;
+                result.p1Wins += game.playerDidWon(player1) ? 1 : 0;
+                result.p2Wins += game.playerDidWon(player2) ? 1 : 0;
+
+                result.p1Moves += game.getPlayerMoves(player1);
+                result.p1MoveTime += player1.getTotalMoveTimeTaken();
+                result.p2Moves += game.getPlayerMoves(player2);
+                result.p2MoveTime += player2.getTotalMoveTimeTaken();
+
+//                System.out.println(result.calcWinPercentage());
+//                System.out.println(game.moveHistory);
+            }
+
+            if (log)
+                System.out.println(
+                        "p1: " + result.p1Wins + ", p2: " + result.p2Wins + " draw: " + result.draws +
+                                " p1Win%: " + result.calcWinPercentage() + "%"
+
+                );
+
+        }
+
+        return result;
     }
 
     public static void makeRandGames(int amount, int moves) {
@@ -140,6 +166,48 @@ V3: Give reward for making three in a row in their row (red/yellow)
 
         return game.moveHistory.toArray(new Integer[]{});
     }
+
+    class EvaluateResult {
+        public int p1Wins = 0;
+        public int p2Wins = 0;
+        public int draws = 0;
+
+        public int p1Moves = 0, p2Moves = 0;
+        public long p1MoveTime = 0, p2MoveTime = 0;
+
+        public float calcWinPercentage() {
+            return calcWinPercentage(p1Wins, p2Wins, draws);
+        }
+
+        public void addFrom(EvaluateResult other) {
+            this.p1Wins += other.p1Wins;
+            this.p2Wins += other.p2Wins;
+            this.draws += other.draws;
+            this.p1Moves += other.p1Moves;
+            this.p2Moves += other.p2Moves;
+            this.p1MoveTime += other.p1MoveTime;
+            this.p2MoveTime += other.p2MoveTime;
+        }
+
+        public static float calcWinPercentage(float p1Win, float p2Wins, float draws) {
+            float totalGames = p1Win + p2Wins + draws;
+            return
+                    Math.round(
+                            (p1Win + draws * 0.5) / totalGames * 1000
+                    ) / 10.0f;
+        }
+
+        private static float avgMoveTime(long moveTime, int moves) {
+            return Math.round(moveTime/(moves*1.0f)*100)/100.0f;
+        }
+        public float p1AvgMoveTime() {
+            return avgMoveTime(p1MoveTime, p1Moves);
+        }
+        public float p2AvgMoveTime() {
+            return avgMoveTime(p2MoveTime, p2Moves);
+        }
+    }
+
 
     static class EvaluationConnectFour extends ConnectFourPlayable {
         private final int maxMoves;

@@ -1,8 +1,9 @@
-package betterMinMax;
+package versions.v5.negamax.betterMinMax;
 
-import java.util.Arrays;
 import Game.ConnectFour;
 import versions.v4.row_modifiers.betterMinMax.CacheEntry;
+
+import java.util.Arrays;
 
 public abstract class Node implements Comparable<Node> {
     

@@ -1,15 +1,10 @@
-package betterMinMax;
+package versions.v2.column_reward.betterMinMax;
 
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Scanner;
-import java.util.Stack;
-
+import Game.BotPlayer;
 import Game.ConnectFour;
 import Game.ConnectFourPlayable;
-import Game.BotPlayer;
-import versions.v4.row_modifiers.betterMinMax.CacheEntry;
+
+import java.util.*;
 
 public class BetterMinMaxPlayer implements BotPlayer {
 
@@ -20,15 +15,14 @@ public class BetterMinMaxPlayer implements BotPlayer {
 
     private EvaluationFunction evalFunction;
 
-    public static NegamaxNode[] TOP_NODES = null;
-    private NegamaxNode[] topNodes = null;
+    public static Node[] TOP_NODES = null;
+    private Node[] topNodes = null;
 
     public boolean useCache = true;
     private boolean log = true;
     private boolean randMove = true;
     private long lastMoveMs = 0;
     private long totalTimeTaken = 0;
-    private boolean isRed;
 
     public BetterMinMaxPlayer(int searchDepth, long maxTimeToTake) {
         this.searchDepth = searchDepth;
@@ -44,7 +38,7 @@ public class BetterMinMaxPlayer implements BotPlayer {
     }
 
     void evaluatePosition() throws InterruptedException {
-        DoubleHashMap<Long, CacheEntry> cache = new DoubleHashMap<>();
+        DoubleHashMap<Long, Float> cache = new DoubleHashMap<>();
         if (!useCache) {
             cache = new DoubleFakeHashMap<>();
         }
@@ -52,10 +46,10 @@ public class BetterMinMaxPlayer implements BotPlayer {
 
         int[] moves = game.getAvailableMoves();
         println(game.getAvailableMoves().length);
-        topNodes = new NegamaxNode[moves.length];
+        topNodes = new Node[moves.length];
         int index = 0;
         for (int nodeMove : moves) {
-            topNodes[index] = new NegamaxNode(game, evalFunction, 1, nodeMove, cache, isRed ? -1 : 1);
+            topNodes[index] = new MinNode(game, evalFunction, 1, nodeMove, cache);
             topNodes[index].setMaxTimeStamp(timestampReturn);
             index++;
         }
@@ -63,30 +57,50 @@ public class BetterMinMaxPlayer implements BotPlayer {
         TOP_NODES = topNodes;
 
         for (int currentMaxDepth = 1; currentMaxDepth <= searchDepth; currentMaxDepth += 1) {
+            Node.nodedPurged = 0;
             cache.clear();
+            // int nodeI = 3;
+            // int nodeI2 = 2;
+            // if(topNodes[nodeI].childNodes != null && topNodes[nodeI].childNodes[nodeI2].childNodes != null) {
+            // 	System.out.println("Top nodes before depth " + currentMaxDepth);
+            // 	for(Node node : topNodes[nodeI].childNodes[nodeI2].childNodes) {
+            // 		System.out.print(node.getMoveIndex()+"\t");
+            // 	}
+            // 	System.out.println();
+            // 	for(Node node : topNodes[nodeI].childNodes[nodeI2].childNodes) {
+            // 		int score = node.nodeScore == Integer.MAX_VALUE ? 9999 : node.nodeScore;
+            // 		score = score == Integer.MIN_VALUE ? -9999 : score;
+            // 		System.out.print(score+"\t");
+            // 	}
+            // 	System.out.println();
+            // }
 
             println("Searching depth " + currentMaxDepth);
-            NegamaxNode.sortNodes(topNodes);
+
+            Node.sortNodes(topNodes);
 
             searchNodes(topNodes, currentMaxDepth);
 
-            NegamaxNode bestNode = determaneBestNodes(topNodes).get(0);
-            if (evalFunction.scoreIsWinOrLoss(bestNode.getReverseScore(), true)) {
+
+            Node bestNode = determaneBestNodes(topNodes).get(0);
+            if (evalFunction.scoreIsWinOrLoss(bestNode.nodeScore, false)) {
                 return;
             }
+
 
             if (timestampReturn < System.currentTimeMillis()) {
                 println("Quitting because out of time");
                 return;
             }
         }
+        println("Node.nodedPurged " + Node.nodedPurged);
     }
 
-    void searchNodes(NegamaxNode[] nodes, int depth) throws InterruptedException {
+    void searchNodes(Node[] nodes, int depth) throws InterruptedException {
 
-        for (NegamaxNode node : nodes) {
+        for (Node node : nodes) {
             node.search(depth, Integer.MIN_VALUE, Integer.MAX_VALUE);
-            if (evalFunction.scoreIsWinOrLoss(node.getReverseScore(), true)) {
+            if (evalFunction.scoreIsWinOrLoss(node.nodeScore, !node.isMaximizing())) {
                 return;
             }
         }
@@ -95,9 +109,8 @@ public class BetterMinMaxPlayer implements BotPlayer {
     @Override
     public void init(ConnectFourPlayable game, boolean redPlayer) {
         this.game = game;
-        this.evalFunction = new SmartEvaluationFunction();
+        this.evalFunction = new SmartEvaluationFunction(redPlayer);
         this.totalTimeTaken = 0;
-        this.isRed = redPlayer;
         // this.evalFunction = new SimpleDepthEvaluationFunction(redPlayer);
     }
 
@@ -106,25 +119,10 @@ public class BetterMinMaxPlayer implements BotPlayer {
         long startTime = System.currentTimeMillis();
         evaluatePosition();
 
-        List<NegamaxNode> bestNodes = determaneBestNodes(topNodes);
-
-//        debugNodes(topNodes);
+        List<Node> bestNodes = determaneBestNodes(topNodes);
 
         lastMoveMs = System.currentTimeMillis() - startTime;
         totalTimeTaken += lastMoveMs;
-
-        if (log) {
-            Arrays.sort(topNodes, (a, b) -> a.moveIndex - b.moveIndex);
-
-            println("[betterMinMax] values of nodes:");
-            print("\t [");
-            for (NegamaxNode node : topNodes) {
-                print(node.getReverseScore() + ", ");
-            }
-            print("]");
-            println();
-            println("BetterMinMax]: That took " + (System.currentTimeMillis() - startTime) + "ms");
-        }
 
         if (!randMove) {
             // Make sure nothing is up to randomes
@@ -135,23 +133,36 @@ public class BetterMinMaxPlayer implements BotPlayer {
             return;
         }
 
-        NegamaxNode randomBestMove = chooseRandomNode(bestNodes);
+        Node randomBestMove = chooseRandomNode(bestNodes);
 
+        if (log) {
+            Arrays.sort(topNodes, (a, b) -> a.moveIndex - b.moveIndex);
+
+            println("[betterMinMax] values of nodes:");
+            print("\t [");
+            for (Node node : topNodes) {
+                print(node.nodeScore + ", ");
+            }
+            print("]");
+            println();
+            println("BetterMinMax]: That took " + (System.currentTimeMillis() - startTime) + "ms");
+        }
+        // debugNodes(topNodes);
 
         game.makePlay(randomBestMove.getMoveIndex());
     }
 
-    private void debugNodes(NegamaxNode[] nodes) throws InterruptedException {
+    private void debugNodes(Node[] nodes) throws InterruptedException {
         ConnectFour gameToDebug = game.copy();
         Scanner in = new Scanner(System.in);
         System.out.println("[DEBUG MODE ACTIVATES, ENTER 'q' TO EXIT, NODE INDEX NUMBER TO GO DEEPER AND -1 TO GO UP, 99 for node info]");
         Thread.sleep(1000);
         int currentDepth = 0;
 
-        Stack<NegamaxNode[]> parentNodes = new Stack<>();
-        Stack<NegamaxNode> lastChosenNodes = new Stack<>();
+        Stack<Node[]> parentNodes = new Stack<>();
+        Stack<Node> lastChosenNodes = new Stack<>();
         boolean toMaximize = true;
-        NegamaxNode lastChosenNode = null;
+        Node lastChosenNode = null;
 
         while (true) {
             System.out.println("===============");
@@ -163,19 +174,16 @@ public class BetterMinMaxPlayer implements BotPlayer {
             System.out.println(
                     (game.isRedTurn() ? "\t[Its reds move]" : "\t[Its yellows move]") +
                             (toMaximize ? " tries to maximize" : " tries to minumize") +
-                            (lastChosenNode != null ? (", So score of this row is " + strScore(lastChosenNode.getReverseScore())) : "") +
-                            (lastChosenNode != null ? (lastChosenNode.getPlayer() == 1 ? "(max)" : "(min)") : "")
+                            (lastChosenNode != null ? (", So score of this row is " + strScore(lastChosenNode.nodeScore)) : "") +
+                            (lastChosenNode != null ? (lastChosenNode.isMaximizing() ? "(max)" : "(min)") : "")
             );
-            System.out.println("\tPlayers value: (1/-1): " +
-                    (lastChosenNode == null ? (isRed ? 1 : -1) : lastChosenNode.player)
-            );
-            System.out.println("NegamaxNode in depth " + currentDepth);
-            for (NegamaxNode node : nodes) {
+            System.out.println("Nodes in depth " + currentDepth);
+            for (Node node : nodes) {
                 System.out.print(node.getMoveIndex() + "\t");
             }
             System.out.println();
-            for (NegamaxNode node : nodes) {
-                float score = node.getReverseScore() == Integer.MAX_VALUE ? 9999 : node.getReverseScore();
+            for (Node node : nodes) {
+                float score = node.nodeScore == Integer.MAX_VALUE ? 9999 : node.nodeScore;
                 score = score == Integer.MIN_VALUE ? -9999 : score;
                 System.out.print(strScore(score) + "\t");
             }
@@ -205,19 +213,14 @@ public class BetterMinMaxPlayer implements BotPlayer {
                 System.out.println("[INFO OF NODE]: " + lastChosenNode.debugInfo);
             }
 
-            if (moveToInvestigate == 100) {
-                System.out.println("[exiting...]: ");
-                break;
-            }
-
-            for (NegamaxNode node : nodes) {
+            for (Node node : nodes) {
                 if (node.moveIndex == moveToInvestigate) {
                     if (node.childNodes == null) {
                         System.out.println("Node has no children");
                         lastChosenNode = node;
                         toMaximize = !toMaximize;
                         parentNodes.add(nodes);
-                        nodes = new NegamaxNode[]{};
+                        nodes = new Node[]{};
                         currentDepth++;
                         System.out.println("Selected node " + node.moveIndex);
                         game.executePlay(node.moveIndex);
@@ -254,22 +257,22 @@ public class BetterMinMaxPlayer implements BotPlayer {
         return "" + Math.round(score * 1000) / 1000.0;
     }
 
-    private NegamaxNode chooseRandomNode(List<NegamaxNode> bestNodes) {
+    private Node chooseRandomNode(List<Node> bestNodes) {
         int randIndex = (int) Math.floor(Math.random() * bestNodes.size());
         return bestNodes.get(randIndex);
     }
 
-    private List<NegamaxNode> determaneBestNodes(NegamaxNode[] parentNoded) {
+    private List<Node> determaneBestNodes(Node[] parentNoded) {
 
-        LinkedList<NegamaxNode> bestMoves = new LinkedList<>();
+        LinkedList<Node> bestMoves = new LinkedList<>();
 
         float maxScore = Integer.MIN_VALUE;
-        for (NegamaxNode node : topNodes) {
-            maxScore = Math.max(node.getReverseScore(), maxScore);
+        for (Node node : topNodes) {
+            maxScore = Math.max(node.nodeScore, maxScore);
         }
 
-        for (NegamaxNode node : topNodes) {
-            if (node.getReverseScore() == maxScore) {
+        for (Node node : topNodes) {
+            if (node.nodeScore == maxScore) {
                 bestMoves.add(node);
             }
         }

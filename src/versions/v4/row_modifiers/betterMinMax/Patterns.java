@@ -1,7 +1,6 @@
-package betterMinMax;
+package versions.v4.row_modifiers.betterMinMax;
 
 import Game.ConnectFour;
-import ui.BitBoardViewer;
 
 
 public class Patterns {

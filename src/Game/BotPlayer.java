@@ -5,4 +5,7 @@ public interface BotPlayer extends ConnectFourPlayer {
 
     long getTotalMoveTimeTaken();
 
+    void setMaxTimeToTake(long time);
+    void setMaxDepth(int depth);
+
 }

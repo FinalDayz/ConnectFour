@@ -1,10 +1,6 @@
 package ui;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Scanner;
 import java.util.Stack;
 
 import javax.swing.JFrame;
@@ -13,15 +9,12 @@ import javax.swing.WindowConstants;
 
 import Game.ConnectFour;
 import Game.ConnectFourPlayable;
-import Game.ConnectFourPlayer;
 import Game.GameWatcher;
 import Game.State;
 import betterMinMax.BetterMinMaxPlayer;
-import betterMinMax.Node;
-import ui.ConnectFourViewer;
+import betterMinMax.NegamaxNode;
 
 import java.awt.Color;
-import java.awt.Container;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -294,25 +287,25 @@ public class ConnectFourViewer implements GameWatcher {
 		g.setFont(new Font("Arial", Font.CENTER_BASELINE, 10));
 		((Graphics2D) g).setStroke(new BasicStroke(0.1f));
 
-		Node[] parentNodes = BetterMinMaxPlayer.TOP_NODES;
+		NegamaxNode[] parentNodes = BetterMinMaxPlayer.TOP_NODES;
 		if(parentNodes != null) {
 			int index = 0;
-			for(Node node : parentNodes) {
+			for(NegamaxNode node : parentNodes) {
 				drawNode(g, node, 1, index * 180, 500, 180);
 				index++;
 			}
 		}
 	}
 
-	private void drawNode(Graphics2D g, Node node, int depth, int x, int y, float range) {
+	private void drawNode(Graphics2D g, NegamaxNode node, int depth, int x, int y, float range) {
 
 		g.setColor(Color.WHITE);
-		g.drawString(node.nodeScore+"", x+5, y+13);
+		g.drawString(node.getReverseScore()+"", x+5, y+13);
 		if(node.getChildNodes() == null || depth > 2) {
 			return;
 		}
 		int index = 0;
-		for(Node childNode : node.getChildNodes()) {
+		for(NegamaxNode childNode : node.getChildNodes()) {
 			float childRange = range / node.getChildNodes().length;
 			int childDepth = depth + 1;
 			int childX = (int) Math.round(x + index*1.0/node.getChildNodes().length * range);

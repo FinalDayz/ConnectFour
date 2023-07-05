@@ -1,4 +1,4 @@
-package betterMinMax;
+package versions.v4.row_modifiers.betterMinMax;
 
 import Game.ConnectFour;
 import ui.BitBoardViewer;
@@ -50,6 +50,7 @@ public class SmartEvaluationFunction implements EvaluationFunction {
             ROW_MODIFIERS[4] * NEGATIVE_PATTERN_MODIFIER,
             ROW_MODIFIERS[5] * POSITIVE_PATTERN_MODIFIER,
     };
+    private boolean isRed;
     private static long pattern = 0b10000100001000010000100001000010000100001l;
     private long[] allPatterns;
 
@@ -60,7 +61,8 @@ public class SmartEvaluationFunction implements EvaluationFunction {
 //            new float[]{ 0, 0.05f, 0.15f, 0.3f, 0.15f, 0.05f, 0};
             new float[]{0.1f, 0.07f, 0.2f, 0.4f, 0.2f, 0.07f, 0.1f};
 
-    public SmartEvaluationFunction() {
+    public SmartEvaluationFunction(boolean isRed) {
+        this.isRed = isRed;
 
         allPatterns = new long[5];
         allPatterns[0] = pattern;
@@ -204,7 +206,7 @@ public class SmartEvaluationFunction implements EvaluationFunction {
 
     public static void testPatterns(ConnectFour game) {
         BitBoardViewer.setStaticGame(game);
-        SmartEvaluationFunction eval = new SmartEvaluationFunction();
+        SmartEvaluationFunction eval = new SmartEvaluationFunction(false);
         // checkingHitsForColor = "Red";
         float redHits = eval.applyPatterns(eval.allPatterns, game.getRedBitBoard(), game.getYellowBitBoard(), true);
         // checkingHitsForColor = "Yellow";
@@ -244,7 +246,7 @@ public class SmartEvaluationFunction implements EvaluationFunction {
         }
 
         if (game.gameState.gameDidEnd()) {
-            boolean won = game.gameState.redDidWon();
+            boolean won = game.gameState.redDidWon() == isRed;
             return (float) 1000 / (won ? depth : -depth);
         }
 
@@ -261,7 +263,7 @@ public class SmartEvaluationFunction implements EvaluationFunction {
 
         endScore += addRedColumnReward(redBB, yellowBB);
 
-        return endScore;
+        return isRed ? endScore : -endScore;
     }
 
     public boolean scoreIsWinOrLoss(float score, boolean isMax) {

@@ -1,4 +1,4 @@
-package betterMinMax;
+package versions.v5.negamax.betterMinMax;
 
 import Game.ConnectFour;
 import versions.v4.row_modifiers.betterMinMax.CacheEntry;

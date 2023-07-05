@@ -1,16 +1,15 @@
-package betterMinMax;
+package versions.v4.row_modifiers.betterMinMax;
 
 import Game.ConnectFour;
-import versions.v4.row_modifiers.betterMinMax.CacheEntry;
 
 public class MinNode extends Node {
 
-    public MinNode(ConnectFour game, EvaluationFunction evalFunction, int currentDepth, int move, DoubleHashMap<Long, CacheEntry> cache) {
+    public MinNode(ConnectFour game, EvaluationFunction evalFunction, int currentDepth, int move, DoubleHashMap<Long, Float> cache) {
         super(game, evalFunction, currentDepth, move, cache);
     }
 
     @Override
-    Node createOppositeNode(ConnectFour game, EvaluationFunction evalFunction, int currentDepth, int move, DoubleHashMap<Long, CacheEntry> cache) {
+    Node createOppositeNode(ConnectFour game, EvaluationFunction evalFunction, int currentDepth, int move, DoubleHashMap<Long, Float> cache) {
         return new MaxNode(game, evalFunction, currentDepth, move, cache);
     }
 
@@ -29,10 +28,6 @@ public class MinNode extends Node {
         return score < alpha;
     }
 
-    @Override
-    boolean foundNewBestMove(float score, float alpha, float beta) {
-        return score <= beta;
-    }
     @Override
     float setAlpha(float alpha, float score) {
         return alpha;

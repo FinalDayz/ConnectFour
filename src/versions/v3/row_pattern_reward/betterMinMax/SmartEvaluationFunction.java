@@ -1,4 +1,4 @@
-package betterMinMax;
+package versions.v3.row_pattern_reward.betterMinMax;
 
 import Game.ConnectFour;
 import ui.BitBoardViewer;
@@ -7,49 +7,7 @@ public class SmartEvaluationFunction implements EvaluationFunction {
 
     private static final float POSITIVE_PATTERN_MODIFIER = 1.1f;
     private static final float NEGATIVE_PATTERN_MODIFIER = 0.90909f;
-    private static final float[] ROW_MODIFIERS = new float[]{
-            2.0f,         // ROW 1 (from bottom)
-            1.8f,      // ROW 2 (from bottom)
-            1.6f,       // ROW 3 (from bottom)
-            1.4f,      // ROW 4 (from bottom)
-            1.2f,       // ROW 5 (from bottom)
-            1.0f,      // ROW 6 (from bottom)
-    };
-
-//    private static final float[] ROW_MODIFIERS = new float[]{
-//            1f,     // ROW 1 (from bottom)
-//            0.95f,     // ROW 2 (from bottom)
-//            0.978f,     // ROW 3 (from bottom)
-//            0.97f,     // ROW 4 (from bottom)
-//            0.965f,     // ROW 5 (from bottom)
-//            0.96f,     // ROW 6 (from bottom)
-//
-//
-////            0.985f,     // ROW 2 (from bottom)
-////            0.978f,     // ROW 3 (from bottom)
-////            0.97f,     // ROW 4 (from bottom)
-////            0.965f,     // ROW 5 (from bottom)
-////            0.96f,     // ROW 6 (from bottom)
-////            1f,     // ROW 1 (from bottom)
-//    };
-
-    private static final float[] ROW_MODIFIERS_RED = new float[]{
-            ROW_MODIFIERS[0] * POSITIVE_PATTERN_MODIFIER,
-            ROW_MODIFIERS[1] * NEGATIVE_PATTERN_MODIFIER,
-            ROW_MODIFIERS[2] * POSITIVE_PATTERN_MODIFIER,
-            ROW_MODIFIERS[3] * NEGATIVE_PATTERN_MODIFIER,
-            ROW_MODIFIERS[4] * POSITIVE_PATTERN_MODIFIER,
-            ROW_MODIFIERS[5] * NEGATIVE_PATTERN_MODIFIER,
-    };
-
-    private static final float[] ROW_MODIFIERS_YELLOW = new float[]{
-            ROW_MODIFIERS[0] * NEGATIVE_PATTERN_MODIFIER,
-            ROW_MODIFIERS[1] * POSITIVE_PATTERN_MODIFIER,
-            ROW_MODIFIERS[2] * NEGATIVE_PATTERN_MODIFIER,
-            ROW_MODIFIERS[3] * POSITIVE_PATTERN_MODIFIER,
-            ROW_MODIFIERS[4] * NEGATIVE_PATTERN_MODIFIER,
-            ROW_MODIFIERS[5] * POSITIVE_PATTERN_MODIFIER,
-    };
+    private boolean isRed;
     private static long pattern = 0b10000100001000010000100001000010000100001l;
     private long[] allPatterns;
 
@@ -60,7 +18,9 @@ public class SmartEvaluationFunction implements EvaluationFunction {
 //            new float[]{ 0, 0.05f, 0.15f, 0.3f, 0.15f, 0.05f, 0};
             new float[]{0.1f, 0.07f, 0.2f, 0.4f, 0.2f, 0.07f, 0.1f};
 
-    public SmartEvaluationFunction() {
+
+    public SmartEvaluationFunction(boolean isRed) {
+        this.isRed = isRed;
 
         allPatterns = new long[5];
         allPatterns[0] = pattern;
@@ -110,7 +70,8 @@ public class SmartEvaluationFunction implements EvaluationFunction {
                 boardWinOutcome,
                 Patterns::applyHorizontal,
                 pattern,
-                isRed ? ROW_MODIFIERS_RED : ROW_MODIFIERS_YELLOW
+                isRed ? Patterns.RED_ADVANTAGE_ROWS : Patterns.YELLOW_ADVANTAGE_ROWS,
+                isRed ? Patterns.YELLOW_ADVANTAGE_ROWS : Patterns.RED_ADVANTAGE_ROWS
         );
     }
 
@@ -120,10 +81,11 @@ public class SmartEvaluationFunction implements EvaluationFunction {
         boardWinOutcome = boardWinOutcome & (~falsePositives);
 
         return applyHitsReward(
-                boardWinOutcome,
-                Patterns::applyVertical,
-                pattern,
-                isRed ? ROW_MODIFIERS_RED : ROW_MODIFIERS_YELLOW
+            boardWinOutcome,
+            Patterns::applyVertical,
+            pattern,
+            isRed ? Patterns.RED_ADVANTAGE_ROWS : Patterns.YELLOW_ADVANTAGE_ROWS,
+            isRed ? Patterns.YELLOW_ADVANTAGE_ROWS : Patterns.RED_ADVANTAGE_ROWS
         );
     }
 
@@ -136,7 +98,8 @@ public class SmartEvaluationFunction implements EvaluationFunction {
                 boardWinOutcome,
                 Patterns::applyRightDescendingDiagonal,
                 pattern,
-                isRed ? ROW_MODIFIERS_RED : ROW_MODIFIERS_YELLOW
+                isRed ? Patterns.RED_ADVANTAGE_ROWS : Patterns.YELLOW_ADVANTAGE_ROWS,
+                isRed ? Patterns.YELLOW_ADVANTAGE_ROWS : Patterns.RED_ADVANTAGE_ROWS
         );
     }
 
@@ -149,7 +112,8 @@ public class SmartEvaluationFunction implements EvaluationFunction {
                 boardWinOutcome,
                 Patterns::applyLeftDescendingDiagonal,
                 pattern,
-                isRed ? ROW_MODIFIERS_RED : ROW_MODIFIERS_YELLOW
+                isRed ? Patterns.RED_ADVANTAGE_ROWS : Patterns.YELLOW_ADVANTAGE_ROWS,
+                isRed ? Patterns.YELLOW_ADVANTAGE_ROWS : Patterns.RED_ADVANTAGE_ROWS
         );
     }
 
@@ -157,26 +121,20 @@ public class SmartEvaluationFunction implements EvaluationFunction {
             long boardWinOutcome,
             Patterns.ApplyPattern patternFunction,
             long pattern,
-            float[] rowModifiers
+            long positivePattern,
+            long negativePattern
     ) {
         if (boardWinOutcome == 0) {
             return 0;
         }
+        int threeInRowHits = Long.bitCount(boardWinOutcome);
 
         long diagonalFourInRow = patternFunction.applyPattern(boardWinOutcome);
         long patternHitsInFourInRow = diagonalFourInRow & pattern;
 
         float totalScore = 0f;
-//        totalScore += Long.bitCount(patternHitsInFourInRow);
-        totalScore += Long.bitCount(patternHitsInFourInRow & Patterns.ROW_PATTERNS[0]) * rowModifiers[0];
-        totalScore += Long.bitCount(patternHitsInFourInRow & Patterns.ROW_PATTERNS[1]) * rowModifiers[1];
-        totalScore += Long.bitCount(patternHitsInFourInRow & Patterns.ROW_PATTERNS[2]) * rowModifiers[2];
-        totalScore += Long.bitCount(patternHitsInFourInRow & Patterns.ROW_PATTERNS[3]) * rowModifiers[3];
-        totalScore += Long.bitCount(patternHitsInFourInRow & Patterns.ROW_PATTERNS[4]) * rowModifiers[4];
-        totalScore += Long.bitCount(patternHitsInFourInRow & Patterns.ROW_PATTERNS[5]) * rowModifiers[5];
-
-//        totalScore += Long.bitCount(patternHitsInFourInRow & positivePattern) * POSITIVE_PATTERN_MODIFIER;
-//        totalScore += Long.bitCount(patternHitsInFourInRow & negativePattern) * NEGATIVE_PATTERN_MODIFIER;
+        totalScore += Long.bitCount(patternHitsInFourInRow & positivePattern) * POSITIVE_PATTERN_MODIFIER;
+        totalScore += Long.bitCount(patternHitsInFourInRow & negativePattern) * NEGATIVE_PATTERN_MODIFIER;
 
         return totalScore;
     }
@@ -204,7 +162,7 @@ public class SmartEvaluationFunction implements EvaluationFunction {
 
     public static void testPatterns(ConnectFour game) {
         BitBoardViewer.setStaticGame(game);
-        SmartEvaluationFunction eval = new SmartEvaluationFunction();
+        SmartEvaluationFunction eval = new SmartEvaluationFunction(false);
         // checkingHitsForColor = "Red";
         float redHits = eval.applyPatterns(eval.allPatterns, game.getRedBitBoard(), game.getYellowBitBoard(), true);
         // checkingHitsForColor = "Yellow";
@@ -244,7 +202,7 @@ public class SmartEvaluationFunction implements EvaluationFunction {
         }
 
         if (game.gameState.gameDidEnd()) {
-            boolean won = game.gameState.redDidWon();
+            boolean won = game.gameState.redDidWon() == isRed;
             return (float) 1000 / (won ? depth : -depth);
         }
 
@@ -261,7 +219,7 @@ public class SmartEvaluationFunction implements EvaluationFunction {
 
         endScore += addRedColumnReward(redBB, yellowBB);
 
-        return endScore;
+        return isRed ? endScore : -endScore;
     }
 
     public boolean scoreIsWinOrLoss(float score, boolean isMax) {

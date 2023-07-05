@@ -1,11 +1,11 @@
-package betterMinMax;
+package versions.v4.row_modifiers.betterMinMax;
+
+import Game.ConnectFour;
 
 import java.util.Arrays;
-import Game.ConnectFour;
-import versions.v4.row_modifiers.betterMinMax.CacheEntry;
 
 public abstract class Node implements Comparable<Node> {
-    
+
     public float nodeScore;
     Node[] childNodes = null;
     private final ConnectFour game;
@@ -16,15 +16,14 @@ public abstract class Node implements Comparable<Node> {
     static int nodedPurged = 0;
     public String debugInfo = "";
     private long maxTimeStamp;
-    private DoubleHashMap<Long, CacheEntry> cache;
+    private DoubleHashMap<Long, Float> cache;
 
-    public Node(ConnectFour game, EvaluationFunction evalFunction, int currentDepth, int move, DoubleHashMap<Long, CacheEntry> cache) {
+    public Node(ConnectFour game, EvaluationFunction evalFunction, int currentDepth, int move, DoubleHashMap<Long, Float> cache) {
         this.game = game;
         this.currentDepth = currentDepth;
         this.evalFunction = evalFunction;
         this.moveIndex = move;
         this.cache = cache;
-        nodeScore = initScore();
     }
 
     static void sortNodes(Node[] nodesToSort) {
@@ -45,42 +44,19 @@ public abstract class Node implements Comparable<Node> {
 
     abstract int initScore();
 
-    private boolean checkCanUseCache(CacheEntry savedEntry, float alpha, float beta) {
-        if(savedEntry.type == CacheEntry.TYPE_EXACT) {
-            return true;
-        }
-
-        if(savedEntry.type == CacheEntry.TYPE_UPPER_BOUND && savedEntry.value <= alpha) {
-            return true;
-        }
-
-        if(savedEntry.type == CacheEntry.TYPE_LOWER_BOUND && savedEntry.value >= beta) {
-            return true;
-        }
-
-        return false;
-    }
-
-    public static int player = 0;
-    public void negamaxSearch(int maxDepth, float alpha, float beta) {
-
-    }
-
     public void search(int maxDepth, float alpha, float beta) throws InterruptedException {
         game.executePlay(moveIndex);
 
         // debugInfo+="\n\nBegin " + this+"\n";
 
-        CacheEntry savedEntry = cache.get(game.getRedBitBoard(), game.getYellowBitBoard());
-        if(savedEntry != null) {
-            if(checkCanUseCache(savedEntry, alpha, beta)) {
-                nodeScore = savedEntry.value;
-                game.undoMove(false);
-                // debugInfo += "Got a cache hit! Score of cache hit: "+score+
-                //     " (cache key: "+game.getRedBitBoard()+","+game.getYellowBitBoard()+")\n";
-                return;
-            }
-        }
+//        Float score = cache.get(game.getRedBitBoard(), game.getYellowBitBoard());
+//        if(score != null) {
+//            // debugInfo += "Got a cache hit! Score of cache hit: "+score+
+//            //     " (cache key: "+game.getRedBitBoard()+","+game.getYellowBitBoard()+")\n";
+//            this.nodeScore = score;
+//            game.undoMove(false);
+//            return;
+//        }
         
         boolean doReturn = maxDepth == currentDepth || game.gameState.gameDidEnd();
 
@@ -94,7 +70,6 @@ public abstract class Node implements Comparable<Node> {
             game.undoMove(false);
             return;
         }
-        byte nodeCacheType = CacheEntry.TYPE_UPPER_BOUND;
 
         nodeScore = initScore();
 
@@ -115,39 +90,18 @@ public abstract class Node implements Comparable<Node> {
             // }
            
             if(compareAlphaBeta(this.nodeScore, alpha, beta)) {
-//                if(this.isMaximizing())
-                // TODO: set correct one
-
-//                nodeCacheType = CacheEntry.TYPE_LOWER_BOUND;
-//                CacheEntry entry = new CacheEntry();
-//                entry.value = nodeScore;
-//                entry.type = nodeCacheType;
-//                cache.put(game.getRedBitBoard(), game.getYellowBitBoard(), entry);
-
                 // debugInfo+= "God alpha beta hit, returning with score " + nodeScore+"\n";
                 // nodedPurged += (maxDepth - currentDepth) + 1;
 
                 // cache.put(game.getRedBitBoard(), game.getYellowBitBoard(), this.nodeScore);
-                game.undoMove(false);
-                return;
+//                game.undoMove(false);
+//                return;
             }
-            if(foundNewBestMove(nodeScore, alpha, beta)) {
-                nodeCacheType = 0;
-            }
-            if (nodeScore > alpha && !isMaximizing()) {
-                nodeCacheType = 0;
-            }
-
             alpha = setAlpha(alpha, nodeScore);
             beta = setBeta(beta, nodeScore);
         }
 
-        if(nodeCacheType == CacheEntry.TYPE_UPPER_BOUND || nodeCacheType == CacheEntry.TYPE_EXACT) {
-            CacheEntry entry = new CacheEntry();
-            entry.value = nodeScore;
-            entry.type = nodeCacheType;
-            cache.put(game.getRedBitBoard(), game.getYellowBitBoard(), entry);
-        }
+//        cache.put(game.getRedBitBoard(), game.getYellowBitBoard(), this.nodeScore);
 
         game.undoMove(false);
     }
@@ -172,12 +126,11 @@ public abstract class Node implements Comparable<Node> {
         return moveIndex;
     }
 
-    abstract Node createOppositeNode(ConnectFour game, EvaluationFunction evalFunction, int currentDepth, int hoverMoveIndex, DoubleHashMap<Long, CacheEntry> cache);
+    abstract Node createOppositeNode(ConnectFour game, EvaluationFunction evalFunction, int currentDepth, int hoverMoveIndex, DoubleHashMap<Long, Float> cache);
 
     abstract float compareScore(float score1, float score2);
 
     abstract boolean compareAlphaBeta(float score, float alpha, float beta);
-    abstract boolean foundNewBestMove(float score, float alpha, float beta);
     abstract float setAlpha(float alpha, float score);
     abstract float setBeta(float beta, float score);
     abstract boolean isMaximizing();
