@@ -17,7 +17,7 @@ public class SimpleDepthEvaluationFunction implements EvaluationFunction {
         }
 
         if(game.gameState.gameDidDraw()) {
-            return -1;
+            return 0;
         }
 
         boolean won = game.gameState.redDidWon() == isRed;
@@ -27,7 +27,7 @@ public class SimpleDepthEvaluationFunction implements EvaluationFunction {
 
     @Override
     public boolean scoreIsWinOrLoss(float score, boolean isMax) {
-        return false;
+        return isMax ? score >=1 : score <= -1;
     }
 
 }

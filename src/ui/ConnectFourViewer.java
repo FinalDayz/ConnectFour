@@ -243,6 +243,45 @@ public class ConnectFourViewer implements GameWatcher {
 		}
 
 		drawDebugNodes(g);
+		drawEval(g);
+	}
+
+	protected void drawEval(Graphics2D g) {
+		g.setFont(new Font("Arial", Font.CENTER_BASELINE, 18));
+		g.drawString("Evaluation: ", 540, 10);
+
+		g.setFont(new Font("Arial", Font.CENTER_BASELINE, 14));
+
+		NegamaxNode[] parentNodes = BetterMinMaxPlayer.TOP_NODES;
+		if(parentNodes == null || parentNodes.length == 0) {
+			g.drawString("Waiting to play...", 540, 40);
+			return;
+		}
+
+		g.drawString("Depth: " + BetterMinMaxPlayer.lastCompletedDepth, 540, 70);
+
+		float maxScore = Integer.MIN_VALUE;
+		for(NegamaxNode node : parentNodes) {
+			if(node.getReverseScore() == Integer.MIN_VALUE || node.getReverseScore() == Integer.MAX_VALUE) continue;
+			maxScore = Math.max(node.getReverseScore(), maxScore);
+		}
+
+		if(Math.abs(maxScore) < 50) {
+			String scoreStr = ""+Math.round(maxScore * 100) / 100.0;
+			g.drawString(scoreStr, 540, 40);
+			return;
+		}
+
+		int mateIn = (int) Math.floor(1000 / maxScore);
+		g.drawString("M " + mateIn, 540, 40);
+
+//		if(parentNodes != null) {
+//			int index = 0;
+//			for(NegamaxNode node : parentNodes) {
+//				drawNode(g, node, 1, index * 180, 500, 180);
+//				index++;
+//			}
+//		}
 	}
 
 	protected void drawGame(Graphics2D g, ConnectFour game, int startX, int startY) {

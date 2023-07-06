@@ -42,4 +42,13 @@ public class DoubleHashMap<KeyType, ValueType> {
 
         return topMap.get(index1).containsKey(index2);
     }
+
+    public int size() {
+        int size = 0;
+        for(KeyType key : topMap.keySet()) {
+            size += topMap.get(key).size();
+        }
+
+        return size;
+    }
 }

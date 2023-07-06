@@ -2,6 +2,7 @@ import java.util.Arrays;
 
 import Game.ConnectFourPlayable;
 import betterMinMax.BetterMinMaxPlayer;
+import betterMinMax.NegamaxNode;
 import test.ConnectFourTest;
 import test.DoubleHashMapTest;
 
@@ -56,7 +57,7 @@ public class main {
 		System.out.println("Row patterns vs Column reward, 100ms");
 		Evaluator evaluator = new Evaluator(500);
 		BetterMinMaxPlayer newestBetterMinMaxPlayer = new BetterMinMaxPlayer();
-		newestBetterMinMaxPlayer.useCache = false;
+		newestBetterMinMaxPlayer.useCache = true;
 
 		evaluator.evaluate(
 				new int[]{27},
@@ -71,9 +72,10 @@ public class main {
 		System.exit(0);
 
 //		versions.v4.row_modifiers.betterMinMax.BetterMinMaxPlayer minMaxPlayer = new versions.v4.row_modifiers.betterMinMax.BetterMinMaxPlayer(10, 32000);
-		BetterMinMaxPlayer minMaxPlayer = new BetterMinMaxPlayer(10, 25000);
-		minMaxPlayer.setCanMakeRandomMove(false);
-		minMaxPlayer.useCache = false;
+		BetterMinMaxPlayer minMaxPlayer = new BetterMinMaxPlayer(27, 100);
+//		minMaxPlayer.setCanMakeRandomMove(false);
+		minMaxPlayer.useCache = true;
+
 		//minMaxPlayer.setColumnOnEqualChance(0);
 		//minMaxPlayer.setTimeLimit(5000);
 		// ConsolePlayer human = new ConsolePlayer();
@@ -84,56 +86,16 @@ public class main {
 		//human is Red, starts first, bot is 2nd
 //		 ConnectFourPlayable game = new ConnectFourPlayable(human, minMaxPlayer);
 
-//		game.executeSet(6, 2, 1, 3, 5, 3, 3, 2, 1, 1, 3, 2, 2, 1, 4, 4, 5, 4, 4, 1, 1, 3, 2, 3, 2, 4, 4, 0, 0, 6, 6, 6, 0);
+//		game.executeSet(3,2,3,4);
+
+//		game.executeSet(3, 3, 3, 3, 4, 2, 2, 2, 2, 5, 5, 0, 3, 3, 2, 5, 0, 6, 5, 5, 4, 5, 0, 2, 0, 0, 0, 4);
+//		//						 3, 3, 3, 3, 4, 2, 2, 2, 2, 5, 5, 0, 3, 3, 2, 5, 0, 6, 5, 5, 4, 5, 0, 2, 0, 0, 0, 4, 1) yellow to move
 //		game.setBeginPlayer(minMaxPlayer);
 
-//		ConnectFourPlayable game = new ConnectFourPlayable(human, human);
-
-		// Bot vs Bot
-		// ConnectFourPlayable game = new ConnectFourPlayable(minMaxPlayer2, minMaxPlayer);
-
-//		 ConnectFourViewer viewer = new ConnectFourViewer(new ViewerConfig());
-//		 game.setMinTimePerMove(2000);
-//		 viewer.viewGame(game);
-
-		//5276313436535
-
-		//easy 1
-		// game.executeSet(3, 6, 5, 6, 5, 5, 3, 1);
-		
-		
-		//complex
-		// game.executeSet(3, 6, 2, 6, 3, 3);
-		
-		//easy 2
-		// game.executeSet(1, 6, 2, 6, 3, 3);
-
-		// Red will lose, but it can stall a bit
-		// game.executeSet(2, 3, 2, 3, 0, 3, 3, 2, 0, 4, 5, 2, 0, 0, 3, 4, 4, 2);
-
-
-		// Yellow loses in 5 moves
-		// game.executeSet(3, 0, 3, 6, 4, 1, 4);
-		// game.setBeginPlayer(minMaxPlayer);
-
-
-		// Log.LOG = true;
-		// ConnectFour.checkDiagonal2Win(game.getRedBitBoard());
-
-		// game.setBeginPlayer(minMaxPlayer);
 
 		game.printBoard();
 
 		game.begin();
-
-
-		// int[] moves = new int[]{2, 1, 3, 6, 1, 3, 0, 2, 4, 5, 4, 3, 3, 2, 1, 1, 3, 2, 2, 1, 6, 1, 3, 0, 6, 6, 2, 6, 6, 0, 5, 4, 4, 5};
-		// for(int move : moves) {
-		// 	System.out.println(move);
-		// 	game.executePlay(move);
-		// 	Thread.sleep(1000);
-		// }
-
 	}
 	
 

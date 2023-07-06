@@ -35,6 +35,15 @@ public class BetterMinMaxPlayer implements BotPlayer {
         this.maxTimeToTake = maxTimeToTake;
     }
 
+    @Override
+    public void init(ConnectFourPlayable game, boolean redPlayer) {
+        this.game = game;
+        this.evalFunction = new SmartEvaluationFunction();
+//        this.evalFunction = new SimpleDepthEvaluationFunction(true);
+        this.totalTimeTaken = 0;
+        this.isRed = redPlayer;
+    }
+
     public BetterMinMaxPlayer() {}
     public void setMaxTimeToTake(long time) {
         this.maxTimeToTake = time;
@@ -43,6 +52,7 @@ public class BetterMinMaxPlayer implements BotPlayer {
         this.searchDepth = depth;
     }
 
+    public static int lastCompletedDepth = 0;
     void evaluatePosition() throws InterruptedException {
         DoubleHashMap<Long, CacheEntry> cache = new DoubleHashMap<>();
         if (!useCache) {
@@ -70,6 +80,10 @@ public class BetterMinMaxPlayer implements BotPlayer {
 
             searchNodes(topNodes, currentMaxDepth);
 
+            if (timestampReturn >= System.currentTimeMillis()) {
+                lastCompletedDepth = currentMaxDepth;
+            }
+
             NegamaxNode bestNode = determaneBestNodes(topNodes).get(0);
             if (evalFunction.scoreIsWinOrLoss(bestNode.getReverseScore(), true)) {
                 return;
@@ -80,6 +94,7 @@ public class BetterMinMaxPlayer implements BotPlayer {
                 return;
             }
         }
+
     }
 
     void searchNodes(NegamaxNode[] nodes, int depth) throws InterruptedException {
@@ -90,15 +105,6 @@ public class BetterMinMaxPlayer implements BotPlayer {
                 return;
             }
         }
-    }
-
-    @Override
-    public void init(ConnectFourPlayable game, boolean redPlayer) {
-        this.game = game;
-        this.evalFunction = new SmartEvaluationFunction();
-        this.totalTimeTaken = 0;
-        this.isRed = redPlayer;
-        // this.evalFunction = new SimpleDepthEvaluationFunction(redPlayer);
     }
 
     @Override
@@ -123,7 +129,7 @@ public class BetterMinMaxPlayer implements BotPlayer {
             }
             print("]");
             println();
-            println("BetterMinMax]: That took " + (System.currentTimeMillis() - startTime) + "ms");
+            println("BetterMinMax]: That took " + (System.currentTimeMillis() - startTime) + " ms");
         }
 
         if (!randMove) {
@@ -136,7 +142,6 @@ public class BetterMinMaxPlayer implements BotPlayer {
         }
 
         NegamaxNode randomBestMove = chooseRandomNode(bestNodes);
-
 
         game.makePlay(randomBestMove.getMoveIndex());
     }

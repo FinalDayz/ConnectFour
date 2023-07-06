@@ -24,22 +24,27 @@ public class NegamaxNode implements Comparable<NegamaxNode> {
         this.evalFunction = evalFunction;
         this.moveIndex = move;
         this.cache = cache;
-//        nodeScore = initScore();
+    }
+
+    private boolean checkCanUseCache(CacheEntry savedEntry, float alpha, float beta) {
+        if(savedEntry.type == CacheEntry.TYPE_EXACT) {
+            return true;
+        }
+
+        if(savedEntry.type == CacheEntry.TYPE_UPPER_BOUND && savedEntry.value <= alpha) {
+            return true;
+        }
+
+        if(savedEntry.type == CacheEntry.TYPE_LOWER_BOUND && savedEntry.value >= beta) {
+            return true;
+        }
+
+        return false;
     }
 
     public String debugInfo = "";
     public void search(int maxDepth, float alpha, float beta) throws InterruptedException {
         game.executePlay(moveIndex);
-//        debugInfo+="\n"+currentDepth+"]1 Exploring move " + moveIndex + "\n";
-
-//        CacheEntry savedEntry = cache.get(game.getRedBitBoard(), game.getYellowBitBoard());
-//        if(savedEntry != null) {
-//            if(checkCanUseCache(savedEntry, alpha, beta)) {
-//                nodeScore = savedEntry.value;
-//                game.undoMove(false);
-//                return;
-//            }
-//        }
 
         boolean doReturn = maxDepth == currentDepth || game.gameState.gameDidEnd();
 
@@ -50,10 +55,20 @@ public class NegamaxNode implements Comparable<NegamaxNode> {
 
         if (doReturn) {
             nodeScore = evalFunction.evaluate(game, currentDepth) * player;
-//            debugInfo+="doReturn, end node. relative value " + nodeScore + "\n";
             game.undoMove(false);
             return;
         }
+
+        CacheEntry savedEntry = cache.get(game.getRedBitBoard(), game.getYellowBitBoard());
+        if (savedEntry != null) {
+            if (checkCanUseCache(savedEntry, alpha, beta)) {
+                nodeScore = savedEntry.value;
+                game.undoMove(false);
+                return;
+            }
+        }
+        debugInfo+="\n\nBegin " + this+"\n";
+
         byte nodeCacheType = CacheEntry.TYPE_UPPER_BOUND;
 
         nodeScore = initScore();
@@ -66,44 +81,38 @@ public class NegamaxNode implements Comparable<NegamaxNode> {
 
         for (NegamaxNode node : childNodes) {
             node.search(maxDepth, -beta, -alpha);
+            debugInfo+= "Searched child node (mv:"+node.moveIndex+"), got a value of "+node.nodeScore+" from child. own value is: " + nodeScore+"\n";
 
             this.nodeScore = Math.max(-node.nodeScore, this.nodeScore);
 
-//            if(evalFunction.scoreIsWinOrLoss(nodeScore, true)) {
-//                game.undoMove(false);
-//                return;
-//            }
-            alpha = Math.max(alpha, this.nodeScore);
-
-            if (this.nodeScore >= beta) {
-                // TODO: set correct one
-
-//                nodeCacheType = CacheEntry.TYPE_LOWER_BOUND;
-//                CacheEntry entry = new CacheEntry();
-//                entry.value = nodeScore;
-//                entry.type = nodeCacheType;
-//                cache.put(game.getRedBitBoard(), game.getYellowBitBoard(), entry);
-
-                // cache.put(game.getRedBitBoard(), game.getYellowBitBoard(), this.nodeScore);
+            if(evalFunction.scoreIsWinOrLoss(nodeScore, true)) {
                 game.undoMove(false);
                 return;
             }
-//            if(foundNewBestMove(nodeScore, alpha, beta)) {
-//                nodeCacheType = 0;
-//            }
-//            if (nodeScore > alpha && !isMaximizing()) {
-//                nodeCacheType = 0;
-//            }
+            alpha = Math.max(alpha, this.nodeScore);
 
+            if (alpha >= beta) {
+                debugInfo+= "God alpha beta hit, returning with score " + nodeScore+"\n";
+                CacheEntry entry = new CacheEntry();
+                entry.value = nodeScore;
+                entry.type = CacheEntry.TYPE_LOWER_BOUND;
+                cache.put(game.getRedBitBoard(), game.getYellowBitBoard(), entry);
+
+                game.undoMove(false);
+                return;
+            }
+
+            if (this.nodeScore > alpha) {
+                nodeCacheType = CacheEntry.TYPE_EXACT;
+            }
 
         }
 
-//        if(nodeCacheType == CacheEntry.TYPE_UPPER_BOUND || nodeCacheType == CacheEntry.TYPE_EXACT) {
-//            CacheEntry entry = new CacheEntry();
-//            entry.value = nodeScore;
-//            entry.type = nodeCacheType;
-//            cache.put(game.getRedBitBoard(), game.getYellowBitBoard(), entry);
-//        }
+        CacheEntry entry = new CacheEntry();
+        entry.value = nodeScore;
+        entry.type = nodeCacheType;
+        cache.put(game.getRedBitBoard(), game.getYellowBitBoard(), entry);
+
 
         game.undoMove(false);
     }
@@ -135,7 +144,7 @@ public class NegamaxNode implements Comparable<NegamaxNode> {
     }
 
     public int compareTo(NegamaxNode other) {
-        return Float.compare(other.nodeScore, nodeScore);
+        return Float.compare(other.getReverseScore(), getReverseScore());
     }
 
     public int getMoveIndex() {
