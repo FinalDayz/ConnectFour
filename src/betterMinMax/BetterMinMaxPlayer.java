@@ -61,7 +61,7 @@ public class BetterMinMaxPlayer implements BotPlayer {
         long timestampReturn = System.currentTimeMillis() + maxTimeToTake;
 
         int[] moves = game.getAvailableMoves();
-        println(game.getAvailableMoves().length);
+
         topNodes = new NegamaxNode[moves.length];
         int index = 0;
         for (int nodeMove : moves) {

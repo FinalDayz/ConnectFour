@@ -2,6 +2,7 @@ import Game.ConnectFourPlayable;
 import Game.ConnectFourPlayer;
 import Game.BotPlayer;
 import MinMax.MinMaxPlayer;
+import betterMinMax.BetterMinMaxPlayer;
 import ui.ConnectFourViewer;
 import ui.ViewerConfig;
 
@@ -88,6 +89,27 @@ V3: Give reward for making three in a row in their row (red/yellow)
         System.out.println("PERCENTAGR FOR Player 1: " + totalResult.calcWinPercentage() + "%");
         System.out.println("avg Player 1 move time: " + totalResult.p1AvgMoveTime());
         System.out.println("avg Player 2 move time: " + totalResult.p2AvgMoveTime());
+    }
+
+    public static boolean EVALUATE_CHOICE = true;
+    public void evaluateSpeed(BetterMinMaxPlayer newestBetterMinMaxPlayer, int depth) {
+        newestBetterMinMaxPlayer.setMaxDepth(depth);
+        newestBetterMinMaxPlayer.setMaxTimeToTake(5000);
+
+        for(int i = 0; i < 3/*randGames.length*/; i++) {
+            int[] gameBeginning = randGames[i];
+            for (boolean abChoice : new boolean[]{true, false}) {
+                EVALUATE_CHOICE = abChoice;
+                EvaluationConnectFour game = new EvaluationConnectFour(
+                        newestBetterMinMaxPlayer,
+                        newestBetterMinMaxPlayer,
+                        1
+                );
+                game.executeSet(gameBeginning);
+                game.begin();
+                System.out.println("finished with "+i);
+            }
+        }
     }
 
     private EvaluateResult evaluatePlayers(BotPlayer player1, BotPlayer player2, int logEveryMs) {

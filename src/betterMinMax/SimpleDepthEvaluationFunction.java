@@ -20,8 +20,10 @@ public class SimpleDepthEvaluationFunction implements EvaluationFunction {
             return 0;
         }
 
-        boolean won = game.gameState.redDidWon() == isRed;
+//        return game.gameState.redDidWon() ? 1 : -1;
 
+        boolean won = game.gameState.redDidWon();
+//
         return 1000 / (won ? depth : -depth);
     }
 

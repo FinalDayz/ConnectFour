@@ -70,6 +70,48 @@ public class SmartEvaluationFunction implements EvaluationFunction {
         }
     }
 
+    @Override
+    public float evaluate(ConnectFour game, int depth) {
+//        if(!game.gameState.gameDidEnd()) {
+//            return 0;
+//        }
+//
+//        if(game.gameState.gameDidDraw()) {
+//            return 0;
+//        }
+//
+//        boolean won = game.gameState.redDidWon() == true;
+//
+//        return 1000 / (won ? depth : -depth);
+
+        if (game.gameState.gameDidDraw()) {
+            return 0;
+        }
+
+        if (game.gameState.gameDidEnd()) {
+            boolean won = game.gameState.redDidWon();
+            return (float) 1000 / (won ? depth : -depth);
+        }
+
+        long redBB = game.getRedBitBoard();
+        long yellowBB = game.getYellowBitBoard();
+
+//        float redHits = 0f;
+//        float yellowHits = 0f;
+
+        float redHits = applyPatterns(allPatterns, redBB, yellowBB, true);
+        float yellowHits = applyPatterns(allPatterns, yellowBB, redBB, false);
+
+        redHits += calculateDoubleHits(redBB);
+        yellowHits += calculateDoubleHits(yellowBB);
+
+        float endScore = redHits - yellowHits;
+
+        endScore += addRedColumnReward(redBB, yellowBB);
+
+        return endScore;
+    }
+
     private float calculateHits(long pattern, long board, long boardOppositeSide, boolean isRed) {
         long bitBoard = board | (pattern & ~boardOppositeSide);
 
@@ -237,32 +279,6 @@ public class SmartEvaluationFunction implements EvaluationFunction {
         return score;
     }
 
-    @Override
-    public float evaluate(ConnectFour game, int depth) {
-        if (game.gameState.gameDidDraw()) {
-            return 0;
-        }
-
-        if (game.gameState.gameDidEnd()) {
-            boolean won = game.gameState.redDidWon();
-            return (float) 1000 / (won ? depth : -depth);
-        }
-
-        long redBB = game.getRedBitBoard();
-        long yellowBB = game.getYellowBitBoard();
-
-        float redHits = applyPatterns(allPatterns, redBB, yellowBB, true);
-        float yellowHits = applyPatterns(allPatterns, yellowBB, redBB, false);
-
-        redHits += calculateDoubleHits(redBB);
-        yellowHits += calculateDoubleHits(yellowBB);
-
-        float endScore = redHits - yellowHits;
-
-        endScore += addRedColumnReward(redBB, yellowBB);
-
-        return endScore;
-    }
 
     public boolean scoreIsWinOrLoss(float score, boolean isMax) {
         return isMax ? score > 50 : score < -50;
