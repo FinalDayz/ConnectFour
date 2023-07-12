@@ -55,28 +55,31 @@ public class main {
 //		testFloatMultplSpeed();
 
 		System.out.println("Row patterns vs Column reward, 100ms");
-		Evaluator evaluator = new Evaluator(200);
+		Evaluator evaluator = new Evaluator(400);
 		BetterMinMaxPlayer newestBetterMinMaxPlayer = new BetterMinMaxPlayer();
 
 		// -Djava.compiler=NONE
 //		evaluator.evaluateSpeed(newestBetterMinMaxPlayer, 5);
 //		System.exit(0);
 
-		evaluator.evaluate(
-				new int[]{27},
-				200,
-				newestBetterMinMaxPlayer,
-				new versions.v5.negamax.betterMinMax.BetterMinMaxPlayer()
-//				new versions.v4.row_modifiers.betterMinMax.BetterMinMaxPlayer()
-//				new versions.v3.row_pattern_reward.betterMinMax.BetterMinMaxPlayer()
-//				new versions.v2.column_reward.betterMinMax.BetterMinMaxPlayer()
-//				new versions.v1.base.betterMinMax.BetterMinMaxPlayer(7, 1000)
-		);
+// 		evaluator.evaluate(
+// 				new int[]{4,5,6,7},
+// 				1000,
+// 				newestBetterMinMaxPlayer,
+// 				new versions.v5.negamax.betterMinMax.BetterMinMaxPlayer()
+// 				// new versions.v4.row_modifiers.betterMinMax.BetterMinMaxPlayer()
+// 				// new versions.v3.row_pattern_reward.betterMinMax.BetterMinMaxPlayer()
+// //				new versions.v2.column_reward.betterMinMax.BetterMinMaxPlayer()
+// //				new versions.v1.base.betterMinMax.BetterMinMaxPlayer(7, 1000)
+// 		);
 
-		System.exit(0);
+// 		System.exit(0);
 
 //		versions.v4.row_modifiers.betterMinMax.BetterMinMaxPlayer minMaxPlayer = new versions.v4.row_modifiers.betterMinMax.BetterMinMaxPlayer(10, 32000);
-		BetterMinMaxPlayer minMaxPlayer = new BetterMinMaxPlayer(9, 6500);
+		BetterMinMaxPlayer minMaxPlayer = new BetterMinMaxPlayer(27, 4500);
+		// minMaxPlayer.loadCache("v5_depth_13.lookup", 13);
+		// minMaxPlayer.writeCacheOnce("v5_depth_13.lookup");
+
 //		minMaxPlayer.setCanMakeRandomMove(false);
 
 		//minMaxPlayer.setColumnOnEqualChance(0);
@@ -87,13 +90,14 @@ public class main {
 		//human is yellow, starts 2nd, bot starts
 		ConnectFourPlayable game = new ConnectFourPlayable(minMaxPlayer, human);//game.executeSet(3);
 		//human is Red, starts first, bot is 2nd
-//		 ConnectFourPlayable game = new ConnectFourPlayable(human, minMaxPlayer);
+		//  ConnectFourPlayable game = new ConnectFourPlayable(human, minMaxPlayer);
 
-//		game.executeSet(3,6,3,6);
+		 game.executeSet(3, 3, 3, 3, 3, 4, 1, 1, 4, 1, 1, 0, 0, 0, 1, 0);
+		// game.executeSet(3, 3, 3, 3);//, 4, 2, 2, 2, 4, 2, 6, 5 );
 
-//		game.executeSet(3, 3, 3, 3, 4, 2, 2, 2, 2, 5, 5, 0, 3, 3, 2, 5, 0, 6, 5, 5, 4, 5, 0, 2, 0, 0, 0, 4);
-//		//						 3, 3, 3, 3, 4, 2, 2, 2, 2, 5, 5, 0, 3, 3, 2, 5, 0, 6, 5, 5, 4, 5, 0, 2, 0, 0, 0, 4, 1) yellow to move
-//		game.setBeginPlayer(minMaxPlayer);
+		// game.executeSet(3, 3, 3, 3, 4, 2, 2, 2, 2, 5, 5, 0, 3, 3, 2, 5, 0, 6, 5, 5, 4, 5, 0, 2, 0, 0, 0, 4, 1);
+								//  3, 3, 3, 3, 4, 2, 2, 2, 2, 5, 5, 0, 3, 3, 2, 5, 0, 6, 5, 5, 4, 5, 0, 2, 0, 0, 0, 4, 1) yellow to move
+		// game.setBeginPlayer(minMaxPlayer);
 
 
 		game.begin();

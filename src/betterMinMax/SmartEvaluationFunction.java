@@ -5,10 +5,10 @@ import ui.BitBoardViewer;
 
 public class SmartEvaluationFunction implements EvaluationFunction {
 
-    private static final float POSITIVE_PATTERN_MODIFIER = 1.1f;
-    private static final float NEGATIVE_PATTERN_MODIFIER = 0.90909f;
+    private static final float POSITIVE_PATTERN_MODIFIER = 1.6f;
+    private static final float NEGATIVE_PATTERN_MODIFIER = 0.625f;
     private static final float[] ROW_MODIFIERS = new float[]{
-            2.0f,         // ROW 1 (from bottom)
+            1.6f,         // ROW 1 (from bottom)
             1.8f,      // ROW 2 (from bottom)
             1.6f,       // ROW 3 (from bottom)
             1.4f,      // ROW 4 (from bottom)
@@ -262,8 +262,7 @@ public class SmartEvaluationFunction implements EvaluationFunction {
                         Long.bitCount(ConnectFour.checkHorizontalWin(bitBoard, 2)) +
                         Long.bitCount(ConnectFour.checkVerticallWin(bitBoard, 2));
 
-        // Return float from 0 to 1. The more double hits, the closer to 1;
-//        return 1-1f/(1 + doubleHits);
+        // Return float from 0 to 1. The more double hits, the closer to 1; 
         return 1 - 1f / (1 + doubleHits);
     }
 
@@ -281,7 +280,7 @@ public class SmartEvaluationFunction implements EvaluationFunction {
 
 
     public boolean scoreIsWinOrLoss(float score, boolean isMax) {
-        return isMax ? score > 50 : score < -50;
+        return isMax ? score > 35 : score < -35;
     }
 
     public static void printBoard(long board) {

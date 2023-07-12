@@ -1,9 +1,12 @@
 package betterMinMax;
 
+import java.io.Serializable;
 import java.util.HashMap;
 
-public class DoubleHashMap<KeyType, ValueType> {
+public class DoubleHashMap<KeyType, ValueType> implements Serializable {
     private HashMap<KeyType, HashMap<KeyType, ValueType>> topMap;
+
+    private static final long serialVersionUID = 1L;
 
     public DoubleHashMap() {
         clear();

@@ -119,7 +119,7 @@ V3: Give reward for making three in a row in their row (red/yellow)
         long lastLog = 0;
         for (int i = 0; i < len; i++) {
             boolean log = lastLog+logEveryMs <= System.currentTimeMillis();
-//            log = true;
+        //    log = true;
             if (log) {
                 lastLog = System.currentTimeMillis();
                 System.out.print("round " + (i + 1) + "/" + (len - 1) + "] ");
@@ -144,8 +144,8 @@ V3: Give reward for making three in a row in their row (red/yellow)
                 result.p2Moves += game.getPlayerMoves(player2);
                 result.p2MoveTime += player2.getTotalMoveTimeTaken();
 
-//                System.out.println(result.calcWinPercentage());
-//                System.out.println(game.moveHistory);
+            //    System.out.println(result.calcWinPercentage());
+            //    System.out.println(game.moveHistory);
             }
 
             if (log)

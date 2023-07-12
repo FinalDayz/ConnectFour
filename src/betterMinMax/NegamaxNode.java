@@ -1,7 +1,6 @@
 package betterMinMax;
 
 import Game.ConnectFour;
-import versions.v4.row_modifiers.betterMinMax.CacheEntry;
 import java.util.Arrays;
 
 public class NegamaxNode implements Comparable<NegamaxNode> {
@@ -58,15 +57,18 @@ public class NegamaxNode implements Comparable<NegamaxNode> {
             return;
         }
 
-        CacheEntry savedEntry = cache.get(game.getRedBitBoard(), game.getYellowBitBoard());
-        if (savedEntry != null) {
-            if (checkCanUseCache(savedEntry, alpha, beta)) {
-                nodeScore = savedEntry.value;
-                game.undoMove(false);
-                return;
+        boolean useCache = true || currentDepth <= maxDepth-2;
+
+        if(useCache) {
+            CacheEntry savedEntry = cache.get(game.getRedBitBoard(), game.getYellowBitBoard());
+            if (savedEntry != null) {
+                if (checkCanUseCache(savedEntry, alpha, beta)) {
+                    nodeScore = savedEntry.value;
+                    game.undoMove(false);
+                    return;
+                }
             }
         }
-        debugInfo+="\n\nBegin " + this+"\n";
 
         byte nodeCacheType = CacheEntry.TYPE_UPPER_BOUND;
 
@@ -80,7 +82,7 @@ public class NegamaxNode implements Comparable<NegamaxNode> {
 
         for (NegamaxNode node : childNodes) {
             node.search(maxDepth, -beta, -alpha);
-            debugInfo+= "Searched child node (mv:"+node.moveIndex+"), got a value of "+node.nodeScore+" from child. own value is: " + nodeScore+"\n";
+            // debugInfo+= "Searched child node (mv:"+node.moveIndex+"), got a value of "+node.nodeScore+" from child. own value is: " + nodeScore+"\n";
 
             this.nodeScore = Math.max(-node.nodeScore, this.nodeScore);
 
@@ -91,11 +93,13 @@ public class NegamaxNode implements Comparable<NegamaxNode> {
             alpha = Math.max(alpha, this.nodeScore);
 
             if (alpha >= beta) {
-                debugInfo+= "God alpha beta hit, returning with score " + nodeScore+"\n";
-                CacheEntry entry = new CacheEntry();
-                entry.value = nodeScore;
-                entry.type = CacheEntry.TYPE_LOWER_BOUND;
-                cache.put(game.getRedBitBoard(), game.getYellowBitBoard(), entry);
+                // debugInfo+= "God alpha beta hit, returning with score " + nodeScore+"\n";
+                if(useCache) {
+                    CacheEntry entry = new CacheEntry();
+                    entry.value = nodeScore;
+                    entry.type = CacheEntry.TYPE_LOWER_BOUND;
+                    cache.put(game.getRedBitBoard(), game.getYellowBitBoard(), entry);
+                }
 
                 game.undoMove(false);
                 return;
@@ -107,11 +111,12 @@ public class NegamaxNode implements Comparable<NegamaxNode> {
 
         }
 
-        CacheEntry entry = new CacheEntry();
-        entry.value = nodeScore;
-        entry.type = nodeCacheType;
-        cache.put(game.getRedBitBoard(), game.getYellowBitBoard(), entry);
-
+        if(useCache) {
+            CacheEntry entry = new CacheEntry();
+            entry.value = nodeScore;
+            entry.type = nodeCacheType;
+            cache.put(game.getRedBitBoard(), game.getYellowBitBoard(), entry);
+        }
 
         game.undoMove(false);
     }

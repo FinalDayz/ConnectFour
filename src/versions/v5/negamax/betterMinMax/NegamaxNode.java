@@ -67,7 +67,7 @@ public class NegamaxNode implements Comparable<NegamaxNode> {
                 return;
             }
         }
-        debugInfo+="\n\nBegin " + this+"\n";
+        // debugInfo+="\n\nBegin " + this+"\n";
 
         byte nodeCacheType = CacheEntry.TYPE_UPPER_BOUND;
 
@@ -81,7 +81,7 @@ public class NegamaxNode implements Comparable<NegamaxNode> {
 
         for (NegamaxNode node : childNodes) {
             node.search(maxDepth, -beta, -alpha);
-            debugInfo+= "Searched child node (mv:"+node.moveIndex+"), got a value of "+node.nodeScore+" from child. own value is: " + nodeScore+"\n";
+            // debugInfo+= "Searched child node (mv:"+node.moveIndex+"), got a value of "+node.nodeScore+" from child. own value is: " + nodeScore+"\n";
 
             this.nodeScore = Math.max(-node.nodeScore, this.nodeScore);
 
@@ -92,7 +92,7 @@ public class NegamaxNode implements Comparable<NegamaxNode> {
             alpha = Math.max(alpha, this.nodeScore);
 
             if (alpha >= beta) {
-                debugInfo+= "God alpha beta hit, returning with score " + nodeScore+"\n";
+                // debugInfo+= "God alpha beta hit, returning with score " + nodeScore+"\n";
                 CacheEntry entry = new CacheEntry();
                 entry.value = nodeScore;
                 entry.type = CacheEntry.TYPE_LOWER_BOUND;

@@ -11,6 +11,7 @@ import Game.ConnectFour;
 import Game.ConnectFourPlayable;
 import Game.GameWatcher;
 import Game.State;
+import MinMax.MinMaxPlayer;
 import betterMinMax.BetterMinMaxPlayer;
 import betterMinMax.NegamaxNode;
 
@@ -42,10 +43,23 @@ public class ConnectFourViewer implements GameWatcher {
     private ViewerConfig config;
     private Stack<Integer> undoneMoves = new Stack();
 
+	private Button discoverBranch;
+
 	public ConnectFourViewer(ViewerConfig config) {
 		this.config = config;
 
 		initialize();
+		discoverBranch = new Button(600, 200, "Discover Best Branch", () -> {
+
+			if(currentDiscoveringNodes == null) {
+				currentDiscoveringNodes = BetterMinMaxPlayer.TOP_NODES;
+				System.out.println("Set new");
+				discoverBranch(currentDiscoveringNodes, false);
+				return;
+			}
+
+			discoverBranch(currentDiscoveringNodes, true);
+		});
 	}
 
 	public void initialize() {
@@ -89,8 +103,8 @@ public class ConnectFourViewer implements GameWatcher {
 			@Override
 			public void mousePressed(MouseEvent e) {
 				clickMouse(e);
+				discoverBranch.mousePressed(e);
 			}
-
 		});
 
 		new Thread(() -> {
@@ -242,8 +256,34 @@ public class ConnectFourViewer implements GameWatcher {
 			g.drawString(endStr, rightSide/2-200, bottomSide/2-10);
 		}
 
+		discoverBranch.draw(g);
+
 		drawDebugNodes(g);
 		drawEval(g);
+	}
+
+	private NegamaxNode[] currentDiscoveringNodes;
+	private void discoverBranch(NegamaxNode[] nodes, boolean play) {
+		if(nodes == null || nodes.length == 0) {
+			return;
+		}
+
+		System.out.println("Discovering branch...");
+		NegamaxNode maxNode = nodes[0];
+		float maxScore = Integer.MIN_VALUE;
+		for(NegamaxNode node : nodes) {
+			System.out.println("Move index: " + node.getMoveIndex()+" score: " + node.getReverseScore());
+			if(node.getReverseScore() > maxScore) {
+				maxNode = node;
+				maxScore = node.getReverseScore();
+			}
+		}
+
+		System.out.println("Node move: " + maxNode.moveIndex+" Max score: '" + maxScore+"'");
+
+		if(play)
+		gameToSimulate.executePlay(maxNode.moveIndex);
+		currentDiscoveringNodes = maxNode.getChildNodes();
 	}
 
 	protected void drawEval(Graphics2D g) {
@@ -266,7 +306,7 @@ public class ConnectFourViewer implements GameWatcher {
 			maxScore = Math.max(node.getReverseScore(), maxScore);
 		}
 
-		if(Math.abs(maxScore) < 50) {
+		if(Math.abs(maxScore) < 35) {
 			String scoreStr = ""+Math.round(maxScore * 100) / 100.0;
 			g.drawString(scoreStr, 540, 40);
 			return;

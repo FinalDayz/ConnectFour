@@ -12,21 +12,9 @@ import Game.ConnectFourPlayer;
 import Game.GameWatcher;
 import Game.State;
 import betterMinMax.BetterMinMaxPlayer;
-import betterMinMax.Node;
 import betterMinMax.SmartEvaluationFunction;
 import ui.ConnectFourViewer;
 import ui.ViewerConfig;
-
-import java.awt.Color;
-import java.awt.Font;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.event.MouseMotionListener;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import java.awt.Point;
-
-import java.awt.BasicStroke;
 
 public class GraphicsPlayer implements ConnectFourPlayer {
 	

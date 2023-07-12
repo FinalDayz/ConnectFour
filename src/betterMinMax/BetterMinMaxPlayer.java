@@ -1,5 +1,9 @@
 package betterMinMax;
 
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
@@ -9,7 +13,6 @@ import java.util.Stack;
 import Game.ConnectFour;
 import Game.ConnectFourPlayable;
 import Game.BotPlayer;
-import versions.v4.row_modifiers.betterMinMax.CacheEntry;
 
 public class BetterMinMaxPlayer implements BotPlayer {
 
@@ -29,6 +32,9 @@ public class BetterMinMaxPlayer implements BotPlayer {
     private long lastMoveMs = 0;
     private long totalTimeTaken = 0;
     private boolean isRed;
+    private String writeCacheFile = null;
+    private DoubleHashMap<Long, CacheEntry> loadedCache = null;
+    private int loadedCacheDepth = -1;
 
     public BetterMinMaxPlayer(int searchDepth, long maxTimeToTake) {
         this.searchDepth = searchDepth;
@@ -39,7 +45,7 @@ public class BetterMinMaxPlayer implements BotPlayer {
     public void init(ConnectFourPlayable game, boolean redPlayer) {
         this.game = game;
         this.evalFunction = new SmartEvaluationFunction();
-//        this.evalFunction = new SimpleDepthEvaluationFunction(true);
+    //    this.evalFunction = new SimpleDepthEvaluationFunction(true);
         this.totalTimeTaken = 0;
         this.isRed = redPlayer;
     }
@@ -54,10 +60,12 @@ public class BetterMinMaxPlayer implements BotPlayer {
 
     public static int lastCompletedDepth = 0;
     void evaluatePosition() throws InterruptedException {
+        System.out.println(loadedCache != null ? loadedCache.size() : -1);
         DoubleHashMap<Long, CacheEntry> cache = new DoubleHashMap<>();
         if (!useCache) {
             cache = new DoubleFakeHashMap<>();
         }
+        System.out.println(loadedCache != null ? loadedCache.size() : -1);
         long timestampReturn = System.currentTimeMillis() + maxTimeToTake;
 
         int[] moves = game.getAvailableMoves();
@@ -72,13 +80,22 @@ public class BetterMinMaxPlayer implements BotPlayer {
 
         TOP_NODES = topNodes;
 
-        for (int currentMaxDepth = 1; currentMaxDepth <= searchDepth; currentMaxDepth += 1) {
-            cache.clear();
-
+        int currentMaxDepth;
+        for (currentMaxDepth = 1; currentMaxDepth <= searchDepth; currentMaxDepth += 1) {
             println("Searching depth " + currentMaxDepth);
-            NegamaxNode.sortNodes(topNodes);
 
+            // System.out.println("Cacher size 1 "+cache.size());
+            // boolean useLoadedCache = loadedCache != null && game.moveHistory.size() + currentMaxDepth == loadedCacheDepth;
+            // if(useLoadedCache) {
+            //     cache = loadedCache;
+            //     System.out.println("Use loaded cache! "+game.moveHistory.size() +" + " + currentMaxDepth+ " <= " + loadedCacheDepth+" loaded cache size: " + loadedCache.size());
+            // } else {
+                cache.clear();
+            // }
+
+            NegamaxNode.sortNodes(topNodes);
             searchNodes(topNodes, currentMaxDepth);
+            // System.out.println("Cacher size 2 "+cache.size());
 
             if (timestampReturn >= System.currentTimeMillis()) {
                 lastCompletedDepth = currentMaxDepth;
@@ -86,15 +103,54 @@ public class BetterMinMaxPlayer implements BotPlayer {
 
             NegamaxNode bestNode = determaneBestNodes(topNodes).get(0);
             if (evalFunction.scoreIsWinOrLoss(bestNode.getReverseScore(), true)) {
-                return;
+                break;
             }
 
             if (timestampReturn < System.currentTimeMillis()) {
                 println("Quitting because out of time");
-                return;
+                break;
             }
         }
 
+        
+        // loadedCache = cache;
+        // loadedCacheDepth = game.moveHistory.size() + lastCompletedDepth;
+
+        System.out.println("Cache table entries: " + cache.size()/1000+"K entries ");
+        if(writeCacheFile != null) {
+            writeCache(cache, writeCacheFile);
+            System.out.println("Wrote cache to file '"+writeCacheFile+"'");
+            writeCacheFile = null;
+        }
+    }
+
+    private void writeCache(DoubleHashMap<Long, CacheEntry> cache, String fileName) {
+        try {
+ 
+            FileOutputStream fileOut = new FileOutputStream(fileName);
+            ObjectOutputStream objectOut = new ObjectOutputStream(fileOut);
+            objectOut.writeObject(cache);
+            objectOut.close();
+ 
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
+
+    private DoubleHashMap<Long, CacheEntry> loadCache(String fileName) {
+        try {
+ 
+            FileInputStream fileOut = new FileInputStream(fileName);
+            ObjectInputStream objectOut = new ObjectInputStream(fileOut);
+            DoubleHashMap<Long, CacheEntry> cache = (DoubleHashMap<Long, CacheEntry>) objectOut.readObject();
+            objectOut.close();
+
+            return cache;
+ 
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        return null;
     }
 
     void searchNodes(NegamaxNode[] nodes, int depth) throws InterruptedException {
@@ -299,5 +355,14 @@ public class BetterMinMaxPlayer implements BotPlayer {
     @Override
     public long getTotalMoveTimeTaken() {
         return totalTimeTaken;
+    }
+
+    public void writeCacheOnce(String fileName) {
+        this.writeCacheFile = fileName;
+    }
+
+    public void loadCache(String fileName, int depth) {
+        this.loadedCache = loadCache(fileName);
+        this.loadedCacheDepth = depth;
     }
 }

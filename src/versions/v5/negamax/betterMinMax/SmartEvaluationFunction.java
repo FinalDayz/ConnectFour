@@ -5,10 +5,10 @@ import ui.BitBoardViewer;
 
 public class SmartEvaluationFunction implements EvaluationFunction {
 
-    private static final float POSITIVE_PATTERN_MODIFIER = 1.1f;
-    private static final float NEGATIVE_PATTERN_MODIFIER = 0.90909f;
+    private static final float POSITIVE_PATTERN_MODIFIER = 1.6f;
+    private static final float NEGATIVE_PATTERN_MODIFIER = 0.625f;
     private static final float[] ROW_MODIFIERS = new float[]{
-            2.0f,         // ROW 1 (from bottom)
+            1.6f,         // ROW 1 (from bottom)
             1.8f,      // ROW 2 (from bottom)
             1.6f,       // ROW 3 (from bottom)
             1.4f,      // ROW 4 (from bottom)
